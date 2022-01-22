@@ -1,14 +1,18 @@
-# MTA Exchange v2 Bot
+# <img src="https://static.wikia.nocookie.net/minecraft_gamepedia/images/3/33/Netherite_Scrap_JE2_BE1.png" alt="MarineGEO circle logo" style="height: 48px; width:48px;"/> MTA Exchange v2 Bot
 
 ## Commands
 
-- `/auction <list|add>`
+- `/auction <list|create [item ID | item name] [amount]>`
 
-- `/search <item id|item name>` - should be able to list all
+- `/search <item ID | item name>` - should be able to list all
 
 - `/list <user>` - lists all registered information about a user, including their current pitches, 
 
-- `/buying`
+- `/ ` - 
+
+- `/buying <item ID>`
+
+- `/selling`
 
 ## Roles
 
