@@ -77,5 +77,5 @@ async def on_message(message):
     #     await message.channel.send('This is that you want http://youtube.com/fazttech')
     #     await bot.process_commands(message)
 
-if __name__ == 'main':
+if __name__ == '__main__':
     bot.run(token)
