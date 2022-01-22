@@ -4,28 +4,26 @@
 A way for anyone to show interest in buying or selling items on MTA. 
 Disclaimer: We're not responsible for users that act in bad-faith, so trade wisely.
 
+## Premises
+- Each auction, trade and offer (added via /auction, /buying, /selling or /offer commands) has a integer ID, and each can be refered to as a "signal".
+
 ## Commands
 
 - `/auction <list|create [item ID | item name] [amount]>`
 
-- `/search <item ID | item name>` - should be able to list all items of the latest version
+- `/search <item ID | item name>` - should be able to list all signals containing item name or ID
 
 - `/info <user>` - lists all registered information about a user, including their current trades, auctions and offers
 
-- `/buying <item ID> [amount]`
+- `/buying <item ID | item name> [amount]` - signal that you're looking to buy something
 
-- `/selling <item ID> [amount]`
+- `/selling <item ID | item name> [amount]` - signal that you're looking to sell something
 
-- `/remove <auction ID | trade ID | offer ID>`
+- `/remove <auction ID | trade ID | offer ID>` - removes a previously added signal
 
-- `/offer <user> <auction ID | trade ID> <offer: string>`
+- `/offer <user> <auction ID | trade ID> <offer: string>` - makes a formal bid to a signal
 
-- `/source` - sends this file as a direct message
-
-When a user 
-
-## Premises
-- Each auction, trade and offer (added via /auction, /buying, /selling or /offer commands) has a integer ID.
+- `/source` - sends source file as a direct message
 
 ## Roles
 
