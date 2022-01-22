@@ -46,8 +46,10 @@ Disclaimer: We're not responsible for users that act in bad-faith, so trade wise
   - Alternatively, automatically remove old user data within a yet-to-be-determined time frame
 
 ## Setup / Contributing
-Follow this [tutorial on how to setup a discord bot](https://www.youtube.com/watch?v=ygc-HdZHO5A) to get a discord token key. After you get the key, just run the script as: 
+Follow this [tutorial on how to setup a discord bot](https://www.youtube.com/watch?v=ygc-HdZHO5A) to get a discord token key with the appropriate permissions. After you get the key, just run the script as: 
 
 ```
-MTA_EXCHANGE_DISCORD_BOT_TOKEN='<your key>' python bot.py
+python bot.py <your key>
 ```
+
+Or alternatively add it as an environment variable and run the script with no arguments.
