@@ -44,3 +44,10 @@ Disclaimer: We're not responsible for users that act in bad-faith, so trade wise
 - Users are notified when they receive an offer
 - Should users be penalized if they don't have the item they are registered to sell?
   - Alternatively, automatically remove old user data within a yet-to-be-determined time frame
+
+## Setup / Contributing
+Follow this [tutorial on how to setup a discord bot](https://www.youtube.com/watch?v=ygc-HdZHO5A) to get a discord token key. After you get the key, just run the script as: 
+
+```
+MTA_EXCHANGE_DISCORD_BOT_TOKEN='<your key>' python bot.py
+```
