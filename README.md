@@ -37,11 +37,11 @@ Disclaimer: We're not responsible for users that act in bad-faith, so trade wise
 
 - Create better help command & clarify command structure
 - Should "shops" be a thing?
-- Add autocomplete in contexts where item ids are possible arguments
+- Add autocomplete in contexts where item ids and names are possible arguments
   - Maybe include popular kits?
 - Add timed auctions?
 - Add trust-ranking system?
-- Users are notified when they receive an offer
+- Users are to be notified when they receive an /offer
 - Should users be penalized if they don't have the item they are registered to sell?
   - Alternatively, automatically remove old user data within a yet-to-be-determined time frame
 
