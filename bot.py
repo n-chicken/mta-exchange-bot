@@ -6,20 +6,18 @@ from discord_slash.utils.manage_commands import create_choice, create_option
 import datetime
 import os
 import re
-import sys
+import argparse
 
 BOT_TOKEN_KEY = 'MTA_EXCHANGE_DISCORD_BOT_TOKEN'
-CHANNEL_ID = 815757801133441115
-
-try:
-    token = sys.argv[1] if len(sys.argv) > 1 else os.environ[BOT_TOKEN_KEY]
-except KeyError:
-    print(f'Use {BOT_TOKEN_KEY} environment variable or pass it as an argument' , file=sys.stderr)
-    sys.exit(1)
-
 bot = commands.Bot(command_prefix='/')
-
 slash = SlashCommand(bot, sync_commands=True)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='MTA Exchange v2 Bot')
+    parser.add_argument('token', nargs='?', default=os.environ.get(BOT_TOKEN_KEY))
+    parser.add_argument('-g', '--guild', type=int, default=815757801133441115)
+    args = parser.parse_args()
+    CHANNEL_ID = args.guild
 
 # option_type for @slash.slash
 # 1: SUB_COMMAND
@@ -78,4 +76,5 @@ async def on_message(message):
     #     await bot.process_commands(message)
 
 if __name__ == '__main__':
-    bot.run(token)
+    bot.run(args.token)
+
