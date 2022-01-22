@@ -9,7 +9,9 @@ Disclaimer: We're not responsible for users that act in bad-faith, so trade wise
 
 ## Commands
 
-- `/auction <list|create [item ID | item name] [amount]>`
+- `/auction create <item ID | item name> [amount] [time]` - create an auction, possibly with a time limit
+
+- `/auction list [item ID | item name]` - lists auctions optionally filtering by item name or ID
 
 - `/search <item ID | item name>` - should be able to list all signals containing item name or ID
 
