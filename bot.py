@@ -69,7 +69,7 @@ async def remove(ctx):
     await ctx.send('To be implemented')
 
 @bot.slash_command()
-async def offer(ctx):
+async def offer(ctx, user: disnake.User):
     await ctx.send('To be implemented')
 
 @bot.slash_command()
