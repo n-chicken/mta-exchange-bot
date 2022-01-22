@@ -7,6 +7,8 @@ import datetime
 import os
 import re
 import argparse
+import sys
+from sql_base import session_factory
 
 BOT_TOKEN_KEY = 'MTA_EXCHANGE_DISCORD_BOT_TOKEN'
 bot = commands.Bot(command_prefix='/')
@@ -17,9 +19,10 @@ if __name__ == '__main__':
     parser.add_argument('token', nargs='?', default=os.environ.get(BOT_TOKEN_KEY))
     parser.add_argument('-g', '--guild', type=int, default=815757801133441115)
     args = parser.parse_args()
-    CHANNEL_ID = args.guild
+else:
+    sys.exit(1)
 
-# option_type for @slash.slash
+# option_types for @slash.slash
 # 1: SUB_COMMAND
 # 2: SUB_COMMAND_GROUP
 # 3: STRING
@@ -32,7 +35,7 @@ if __name__ == '__main__':
 @slash.slash(
         name='ping',
         description='pings the bot',
-        guild_ids=[CHANNEL_ID],
+        guild_ids=[args.guild],
         options=[
             create_option(
                 name="option",
@@ -45,6 +48,22 @@ if __name__ == '__main__':
 @bot.command()
 async def ping(ctx, option: str):
     await ctx.send('pong')
+
+def get_people():
+    session = session_factory()
+    people_query = session.query(Person)
+    session.close()
+    return people_query.all()
+
+@slash.slash(
+        name='test',
+        description='Run a test'
+        )
+@bot.command()
+async def test(ctx):
+    kek = get_people()
+    print(kek)
+    await ctx.send('')
 
 # @slash.slash(
 #         name='info',

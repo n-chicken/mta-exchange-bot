@@ -1,4 +1,4 @@
-# <img src="https://static.wikia.nocookie.net/minecraft_gamepedia/images/3/33/Netherite_Scrap_JE2_BE1.png" alt="MarineGEO circle logo" style="height: 48px; width:48px;"/> MTA Exchange v2 Bot
+# <img src="https://static.wikia.nocookie.net/minecraft_gamepedia/images/3/33/Netherite_Scrap_JE2_BE1.png" alt="logo" style="height: 32px; width: 32px;"/> MTA Exchange v2 Bot
 
 ## What this could be:
 A way for anyone to show interest in buying or selling items on MTA. 
@@ -30,7 +30,7 @@ Disclaimer: We're not responsible for users that act in bad-faith, so trade wise
 ## Roles
 
 - Unverified
-- Trusted (has at least one transaction confirmed by other verified member and has shown his IGN in MTA)
+- Trusted (has at least one transaction confirmed by other verified member and has shown they own an IGN on MTA)
 - Very-Trusted (has at least 5 transactions confirmed by distinct verified members)
 
 ## To-do/Issues:
@@ -42,14 +42,23 @@ Disclaimer: We're not responsible for users that act in bad-faith, so trade wise
 - Add timed auctions?
 - Add trust-ranking system?
 - Users are to be notified when they receive an /offer
-- Should users be penalized if they don't have the item they are registered to sell?
+- Should users be penalized if they don't have the item they are registered to sell or buy?
   - Alternatively, automatically remove old user data within a yet-to-be-determined time frame
 
 ## Setup / Contributing
-Follow this [tutorial on how to setup a discord bot](https://www.youtube.com/watch?v=ygc-HdZHO5A) to get a discord token key with the appropriate permissions. After you get the key, just run the script as: 
+
+### Database
+
+To run the database, just use `docker-compose up`
+
+### Key
+
+Follow this [tutorial on how to setup a discord bot](https://www.youtube.com/watch?v=ygc-HdZHO5A) to get a discord token key with the appropriate permissions. 
+
+After you have setup the database and got the key, just either run the script like the following or omit the key argument and set it as an environment variable called `MTA_EXCHANGE_DISCORD_BOT_TOKEN`: 
 
 ```
 python bot.py <your key> [-g <your channel's ID>]
 ```
 
-Or alternatively add it as an environment variable and run the script with no arguments.
+Notice you have to overwrite the guild ID with your channel for it to work outside MTA Exchange Discord Server. 
