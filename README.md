@@ -49,7 +49,7 @@ Disclaimer: We're not responsible for users that act in bad-faith, so trade wise
 Follow this [tutorial on how to setup a discord bot](https://www.youtube.com/watch?v=ygc-HdZHO5A) to get a discord token key with the appropriate permissions. After you get the key, just run the script as: 
 
 ```
-python bot.py <your key>
+python bot.py <your key> [-g <your channel's ID>]
 ```
 
 Or alternatively add it as an environment variable and run the script with no arguments.
