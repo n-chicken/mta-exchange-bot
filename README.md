@@ -8,7 +8,7 @@ Disclaimer: We're not responsible for users that act in bad-faith, so trade wise
 
 - `/auction <list|create [item ID | item name] [amount]>`
 
-- `/search <item ID | item name>` - should be able to list all
+- `/search <item ID | item name>` - should be able to list all items of the latest version
 
 - `/info <user>` - lists all registered information about a user, including their current trades, auctions and offers
 
@@ -19,6 +19,8 @@ Disclaimer: We're not responsible for users that act in bad-faith, so trade wise
 - `/remove <auction ID | trade ID | offer ID>`
 
 - `/offer <user> <auction ID | trade ID> <offer: string>`
+
+- `/source` - sends this file as a direct message
 
 When a user 
 
