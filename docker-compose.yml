@@ -8,7 +8,6 @@ services:
     environment:
       MYSQL_DATABASE: mta
       MYSQL_USER: mta
-      MYSQL_ALLOW_EMPTY_PASSWORD: true
       MYSQL_PASSWORD: mta
       MYSQL_TCP_PORT: 3306
 
