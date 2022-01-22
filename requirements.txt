@@ -1,3 +1,4 @@
 discord-py-slash-command 
 pymysql
 sqlalchemy
+disnake
