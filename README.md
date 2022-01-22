@@ -5,7 +5,7 @@ A way for anyone to show interest in buying or selling items on MTA.
 Disclaimer: We're not responsible for users that act in bad-faith, so trade wisely.
 
 ## Premises
-- Each auction, trade and offer (added via /auction, /buying, /selling or /offer commands) has a integer ID, and each can be refered to as a "signal".
+- Each auction, offer, and buying and selling intention (added via /auction, /offer, /buying or /selling commands) has a integer ID, and each can be refered to as a "signal".
 
 ## Commands
 
@@ -21,9 +21,9 @@ Disclaimer: We're not responsible for users that act in bad-faith, so trade wise
 
 - `/selling <item ID | item name> [amount]` - signal that you're looking to sell something
 
-- `/remove <auction ID | trade ID | offer ID>` - removes a previously added signal
+- `/remove <signal ID>` - removes a previously added signal
 
-- `/offer <user> <auction ID | trade ID> <offer: string>` - makes a formal bid to a signal
+- `/offer <user> <signal ID> <offer: string>` - makes a formal bid to a signal
 
 - `/source` - sends source file as a direct message
 
@@ -35,6 +35,9 @@ Disclaimer: We're not responsible for users that act in bad-faith, so trade wise
 
 ## To-do/Issues:
 
+- Auctions
+    - Announce when an auction ends
+    - Announce when an auction offer is made
 - Create better help command & clarify command structure
 - Should "shops" be a thing?
 - Add autocomplete in contexts where item ids and names are possible arguments

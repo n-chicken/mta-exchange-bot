@@ -9,6 +9,7 @@ import re
 import argparse
 import sys
 from sql_base import session_factory
+from signals import Signal
 
 BOT_TOKEN_KEY = 'MTA_EXCHANGE_DISCORD_BOT_TOKEN'
 bot = commands.Bot(command_prefix='/')
@@ -21,6 +22,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 else:
     sys.exit(1)
+
+async def require_subcommand(ctx):
+    if ctx.invoked_subcommand is None:
+        await ctx.send("Command can't be invoked without a subcommand")
 
 # option_types for @slash.slash
 # 1: SUB_COMMAND
@@ -41,7 +46,7 @@ else:
                 name="option",
                 description="choose word",
                 required=True,
-                option_type=3
+                option_type=1
                 )
             ]
         )
@@ -49,21 +54,27 @@ else:
 async def ping(ctx, option: str):
     await ctx.send('pong')
 
-def get_people():
-    session = session_factory()
-    people_query = session.query(Person)
-    session.close()
-    return people_query.all()
-
 @slash.slash(
-        name='test',
-        description='Run a test'
+        name='Auction',
+        description='Lists and creates auctions',
+        guild_ids=[args.guild],
+        options=[
+            ]
         )
-@bot.command()
-async def test(ctx):
-    kek = get_people()
-    print(kek)
-    await ctx.send('')
+async def auction(ctx):
+    await require_subcommand(ctx)
+
+@bot.command(name='list')
+async def _list(ctx, *args):
+    ctx.send('test!')
+
+# -------------------------------------------
+
+def get_signals():
+    session = session_factory()
+    signal_query = session.query(Signal)
+    session.close()
+    return signal_query.all()
 
 # @slash.slash(
 #         name='info',
