@@ -20,3 +20,4 @@
 - Create better help command & clarify command structure
 - Should "shops" be a thing?
 - Add autocomplete in contexts where item ids are possible arguments
+  - Maybe include popular kits?
