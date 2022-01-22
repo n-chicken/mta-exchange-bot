@@ -15,7 +15,7 @@ Disclaimer: We're not responsible for users that act in bad-faith, so trade wise
 
 - `/search <item ID | item name>` - should be able to list all signals containing item name or ID
 
-- `/info <user>` - lists all registered information about a user, including their current trades, auctions and offers
+- `/info <user>` - lists all registered information about a user, including their signals
 
 - `/buying <item ID | item name> [amount]` - signal that you're looking to buy something
 
