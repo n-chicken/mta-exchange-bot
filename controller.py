@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 import discord
 from discord.ext import commands
+import asyncio
 # from discord_slash import SlashCommand, SlashContext
 # from discord_slash.utils.manage_commands import create_choice, create_option
 import disnake
 from disnake import User
 from disnake.ext import commands
-import datetime
+from datetime import datetime
 import os
 import re
 import argparse
@@ -21,8 +22,6 @@ SOURCE_PATH = os.path.realpath(__file__)
 
 BOT_TOKEN_KEY = 'MTA_EXCHANGE_DISCORD_BOT_TOKEN'
 
-signal_service = SignalService()
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='MTA Exchange v2 Bot')
     parser.add_argument('token', nargs='?', default=os.environ.get(BOT_TOKEN_KEY))
@@ -32,9 +31,10 @@ else:
     sys.exit(1)
 
 bot = commands.Bot(command_prefix="$", test_guilds=[args.guild])
-service = 
 
 items = json.load(open('data/minecraft-items.json'))
+
+signal_service = SignalService()
 
 # -------------------------------------------------------------
 
@@ -48,14 +48,18 @@ async def on_ready():
 # Commands
 @bot.slash_command()
 async def auction(ctx):
-    await ctx.send('To be implemented')
+    await asyncio.sleep(0)
 
 @auction.sub_command()
-async def create(ctx, item_sold: str, item_recv: str, intention: str, item_sold_amount: int, item_recv_amount: int):
-    await ctx.send('To be implemented')
+async def create(ctx, item_sold: str, item_recv: str, intention: str, item_sold_amount: int, item_recv_amount: int, limit=None):
+    if intention not in ['buy', 'sell']:
+        await ctx.send('Intention must be either to `buy` or `sell`')
+    signal_service.add_auction(item_sold, item_recv, ctx.author, intention, item_sold_amount, item_recv_amount, limit)
+    await ctx.send('Auction created')
 
 @auction.sub_command()
 async def list(ctx, user: User=None):
+    signal_service
     await ctx.send('To be implemented')
 
 @bot.slash_command()
