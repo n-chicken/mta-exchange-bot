@@ -10,8 +10,6 @@ import os
 import re
 import argparse
 import sys
-from sql_base import session_factory
-from signals import Signal
 import json
 
 # -------------------------------------------------------------
@@ -29,6 +27,8 @@ else:
     sys.exit(1)
 
 bot = commands.Bot(command_prefix="$", test_guilds=[args.guild])
+
+items = json.load(open('data/minecraft-items.json'))
 
 # -------------------------------------------------------------
 
@@ -69,7 +69,7 @@ async def remove(ctx):
     await ctx.send('To be implemented')
 
 @bot.slash_command()
-async def offer(ctx, user: disnake.User):
+async def bid(ctx, user: disnake.User):
     await ctx.send('To be implemented')
 
 @bot.slash_command()
