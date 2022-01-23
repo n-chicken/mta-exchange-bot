@@ -4,6 +4,7 @@ from discord.ext import commands
 # from discord_slash import SlashCommand, SlashContext
 # from discord_slash.utils.manage_commands import create_choice, create_option
 import disnake
+from disnake import User
 from disnake.ext import commands
 import datetime
 import os
@@ -11,12 +12,16 @@ import re
 import argparse
 import sys
 import json
+from signals import *
+from service import SignalService
 
 # -------------------------------------------------------------
 
 SOURCE_PATH = os.path.realpath(__file__)
 
 BOT_TOKEN_KEY = 'MTA_EXCHANGE_DISCORD_BOT_TOKEN'
+
+signal_service = SignalService()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='MTA Exchange v2 Bot')
@@ -27,6 +32,7 @@ else:
     sys.exit(1)
 
 bot = commands.Bot(command_prefix="$", test_guilds=[args.guild])
+service = 
 
 items = json.load(open('data/minecraft-items.json'))
 
@@ -45,11 +51,11 @@ async def auction(ctx):
     await ctx.send('To be implemented')
 
 @auction.sub_command()
-async def create(ctx, option: str):
+async def create(ctx, item_sold: str, item_recv: str, intention: str, item_sold_amount: int, item_recv_amount: int):
     await ctx.send('To be implemented')
 
 @auction.sub_command()
-async def list(ctx, option: int):
+async def list(ctx, user: User=None):
     await ctx.send('To be implemented')
 
 @bot.slash_command()

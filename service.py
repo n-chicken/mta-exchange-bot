@@ -4,8 +4,11 @@ from disnake import User
 
 class SignalService:
 
-    def add_auction(user: User):
+    def add_auction(self, user: User):
         pass
 
-    def rm_auction(user: User):
+    def list_auctions(self, user: User=None):
+        pass
+
+    def rm_auction(self, user: User):
         pass

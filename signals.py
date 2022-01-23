@@ -16,6 +16,10 @@ class Signal(Base):
     item_sold_amount = Column(Integer)
     item_recv_amount = Column(Integer)
 
+    __mapper_args__ = {
+        'polymorphic_identity':'signal'
+    }
+
     def __init__(self, item_sold, item_recv, author, intention, item_sold_amount, item_recv_amount):
         self.item_sold = item_sold
         self.item_recv = item_recv 
@@ -28,6 +32,7 @@ class Auction(Signal):
     __tablename__ = 'auction'
 
     id = Column(Integer, ForeignKey('signal.id'), primary_key=True)
+    auction_id = Column(Integer, autoincrement=True, primary_key=True)
     limit = Column(DateTime())
 
     __mapper_args__ = {
@@ -41,8 +46,9 @@ class Auction(Signal):
 class Bid(Signal):
     __tablename__ = 'bid'
 
-    id = Column(Integer, ForeignKey('signal.id'), primary_key=True)
-    auction_id  = Column(Integer, ForeignKey('auction.id'), primary_key=True)
+    signal_id  = Column(Integer, ForeignKey('signal.id'), primary_key=True)
+    auction_id  = Column(Integer, ForeignKey('auction.auction_id'), primary_key=True)
+    bid_id = Column(Integer, autoincrement=True, primary_key=True)
 
     __mapper_args__ = {
         'polymorphic_identity':'bid',
