@@ -48,7 +48,7 @@ def find_item(string):
         except:
             continue
     if not item_index:
-        return 'kit'
+        return 'kit' if 'kit' in string else None
     return min(item_index, key=item_index.get)
 
 
@@ -56,13 +56,13 @@ def find_item(string):
 def embed_ad(ad: Ad, author: User) -> disnake.Embed:
     is_buy = ad.intention == 'buy'
     title = f'Ad #{ad.id}'
-    description = 'Is ' + ('looking to buy ' if is_buy else 'selling ') + ad.offer
+    description = 'Looking to ' + ('buy ' if is_buy else 'sell ') + ad.offer
     target_item = find_item(ad.offer)
     other_item = find_item(ad.returns)
     if is_buy:
-        description += ' and expects ' + ad.returns
-    else:
         description += ' and offers ' + ad.returns
+    else:
+        description += ' and expects ' + ad.returns
     embed = disnake.Embed(
         title=title,
         description=description,
@@ -81,10 +81,8 @@ def embed_ad(ad: Ad, author: User) -> disnake.Embed:
     # embed.add_field(name="FN1", value="FV1", inline=True)
     # embed.add_field(name="FN2", value="FV2", inline=True)
 
-    if ad.negotiable:
-        embed.set_footer(text=f'This ad is negotiable')
-    else:
-        embed.set_footer(text=f'Non-Negotiable')
+    if not ad.negotiable:
+        embed.set_footer(text=f'🔒 Non-Negotiable')
     return embed
 
 def embed_bid(bid: Bid, author: User) -> disnake.Embed:
@@ -108,7 +106,6 @@ async def on_ready():
 INVALID_ITEM_ERROR = 'Target item must be a valid minecraft string id or a kit'
 INVALID_PROPOSAL_ERROR = ' must be at most 280 characters long'
 INVALID_SEARCH = 'Search for either a user or an item or both'
-INVALID_TARGET_ITEM = 'Target item must be a valid minecraft string id or a kit'
 TBI = 'To be implemented'
 
 # -------------------------------------------------------------
@@ -120,7 +117,8 @@ async def signal_trade(ctx, intention, offer, returns, negotiable):
     if len(returns) > 280:
         await ctx.send('Returns' + INVALID_PROPOSAL_ERROR)
         return
-    if offer not in items and 'kit' not in offer.lower():
+    item = find_item(offer)
+    if not item:
         await ctx.send(INVALID_ITEM_ERROR)
         return
     ad = trade_service.add_ad(intention, offer, returns, negotiable, ctx.author)
@@ -141,9 +139,6 @@ async def search(ctx, query: str=None, user: User=None):
     if not query and not user:
         await ctx.send(INVALID_SEARCH)
         return
-    # if item not in items:
-    #     await ctx.send(INVALID_TARGET_ITEM)
-    #     return
     ads = trade_service.search(search_query=query, user=user)
     if not ads:
         if random.randint(0,1) % 2 == 0:
@@ -169,7 +164,7 @@ async def remove(ctx, ad_id: int):
 @bot.slash_command()
 async def bid(ctx, ad_id: int, bid_content: str):
     try:
-        bid = trade_service.bid(ad_id, bid_content)
+        bid = trade_service.bid(ad_id, bid_content, ctx.author)
         await ctx.send('Bid sent')
     except Exception as e:
         print(e)

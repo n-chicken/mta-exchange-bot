@@ -29,11 +29,11 @@ class TradeService:
     def find_ad(self, id):
         return sess.query(Ad).filter_by(id=id).first()
 
-    def bid(self, ad_id, bid_content):
+    def bid(self, ad_id, bid_content, user):
         ad = self.find_ad(ad_id)
         if not ad:
             raise AdNotFoundException()
-        bid = Bid(ad.id, bid_content)
+        bid = Bid(ad.id, bid_content, user.id, user.name)
         sess.add(bid)
         sess.commit()
         return bid

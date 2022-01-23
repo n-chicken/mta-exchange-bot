@@ -38,12 +38,16 @@ class Bid(Base):
 
     id = Column(Integer, autoincrement=True, primary_key=True)
     ad_id = Column(Integer, ForeignKey('ad.id'))
+    bid_author_id = Column(BigInteger)
+    bid_author_name = Column(String(64))
     bid_content = Column(String(280))
 
     __mapper_args__ = {
         'polymorphic_identity': 'bid',
     }
 
-    def __init__(self, ad_id, bid_content):
+    def __init__(self, ad_id, bid_content, author_id, author_name):
         self.ad_id = ad_id
         self.bid_content = bid_content
+        self.author_id = author_id
+        self.author_name = author_name
