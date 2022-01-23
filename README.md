@@ -53,7 +53,7 @@ Disclaimer: We're not responsible for users that act in bad-faith, so trade wise
 
 ### Database
 
-To run the database, just use `docker-compose up`
+To run the database, just use `docker-compose up`. To reset it, run `docker-compose down` and the former command.
 
 ### Key
 
