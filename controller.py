@@ -69,6 +69,10 @@ def embed_ad(ad: Ad, author: User) -> disnake.Embed:
         description=description,
         colour=disnake.Colour.orange() if is_buy else disnake.Colour.green()
     )
+    if not is_buy:
+        aux = target_item
+        target_item = other_item
+        other_item = aux
     if target_item and target_item != 'kit':
         file_target_item = disnake.File(
             f'data/item-icons/{target_item}.png', filename="target.png")
@@ -79,8 +83,6 @@ def embed_ad(ad: Ad, author: User) -> disnake.Embed:
         embed.set_image(file=file_other_item)
     if author:
         embed.set_author(name=author.name, icon_url=author.display_avatar.url)
-    # embed.add_field(name="FN1", value="FV1", inline=True)
-    # embed.add_field(name="FN2", value="FV2", inline=True)
 
     if not ad.negotiable:
         embed.set_footer(text=f'🔒 Non-Negotiable')
@@ -89,6 +91,7 @@ def embed_ad(ad: Ad, author: User) -> disnake.Embed:
 
 def embed_bid(bid: Bid, bidder: User, author: User) -> disnake.Embed:
     ad = trade_service.find_ad(bid.ad_id)
+    is_ad_buy = ad.intention == 'buy'
     if not ad:
         raise AdNotFoundException()
     description = ' just bid ' + bid.bid_content + ' for ' + author.name + '\'s '
@@ -96,8 +99,21 @@ def embed_bid(bid: Bid, bidder: User, author: User) -> disnake.Embed:
     embed = disnake.Embed(
         title=bidder.name,
         description=description,
-        colour=disnake.Colour.orange() if is_buy else disnake.Colour.green()
+        colour=disnake.Colour.blue() if is_ad_buy else disnake.Colour.yellow()
     )
+    bid_content_item = find_item(bid.bid_content)
+    if bid_content_item and bid_content_item != 'kit':
+        file_bid_content_item = disnake.File(
+            f'data/item-icons/{bid_content_item}.png', filename="bid_content_item.png")
+        embed.set_thumbnail(file=file_bid_content_item)
+
+    ad_content_item = find_item(ad.offer)
+    if ad_content_item and ad_content_item != 'kit':
+        file_other_item = disnake.File(
+            f'data/item-icons/{ad_content_item}.png', filename="other.png")
+        embed.set_image(file=file_other_item)
+
+    embed.set_author(name=bidder.name, icon_url=bidder.display_avatar.url)
     return embed
 
 
@@ -177,8 +193,10 @@ async def remove(ctx, ad_id: int):
 @bot.slash_command()
 async def bid(ctx, ad_id: int, bid_content: str):
     bid = trade_service.bid(ad_id, bid_content, ctx.author)
-    author = await bot.fetch_user(ad.author_id)
-    await ctx.send(embed=embed_bid(bid, ctx.author, author))
+    ad = trade_service.find_ad(bid.ad_id)
+    ad_author = await bot.fetch_user(ad.author_id)
+    bidder = ctx.author
+    await ctx.send(embed=embed_bid(bid, bidder, ad_author))
 
 
 @bot.slash_command()

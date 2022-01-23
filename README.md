@@ -10,23 +10,19 @@ Disclaimer: We're not responsible for users that act in bad-faith, so trade wise
 
 ## Commands
 
-- `/auction create <item ID | item name> [amount] [time]` - create an auction, possibly with a time limit
-
-- `/auction list [item ID | item name]` - lists auctions optionally filtering by item name or ID
-
 - `/search <item ID | item name>` - should be able to list all signals containing item name or ID
-
-- `/info <user>` - lists all registered information about a user, including their signals
-
-- `/buying <item ID | item name> [amount]` - signal that you're looking to buy something
-
-- `/selling <item ID | item name> [amount]` - signal that you're looking to sell something
-
-- `/remove <signal ID>` - removes a previously added signal
 
 - `/bid <user> <signal ID> <bid: string>` - makes a formal bid to a signal
 
-- `/source` - sends source file as a direct message
+- `/buy` - signal that you're looking to buy something
+
+- `/selling` - signal that you're looking to sell something
+
+- `/info <user>` - lists all registered information about a user, including their signals - TBI
+
+- `/remove <signal ID>` - removes a previously added signal - TBI
+
+- `/source` - sends source file as a direct message - TBI
 
 ## Roles
 
@@ -36,16 +32,12 @@ Disclaimer: We're not responsible for users that act in bad-faith, so trade wise
 
 ## To-do/Issues:
 
-- Auctions
-    - Announce when an auction ends
-    - Announce when an auction bid is made
 - Create better help command & clarify command structure
 - Should "shops" be a thing?
 - Add autocomplete in contexts where item ids and names are possible arguments
   - Maybe include popular kits?
-- Add timed auctions?
 - Add trust-ranking system?
-- Users are to be notified when they receive an /bid
+- Users are to be directly notified when they receive an /bid
 - Limit signal count per player unless they're Very-Trusted
 - Should users be penalized if they don't have the item they are registered to sell or buy?
   - Alternatively, automatically remove old user data within a yet-to-be-determined time frame
