@@ -26,7 +26,7 @@ class TradeService:
             q = q.filter_by(author_id=user.id)
         return q.all()
 
-    def find_ad(self, id):
+    def find_ad(self, id) -> Ad:
         return sess.query(Ad).filter_by(id=id).first()
 
     def bid(self, ad_id, bid_content, user):

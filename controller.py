@@ -4,6 +4,7 @@ from discord.ext import commands
 from disnake import User
 from disnake.ext import commands
 from entities import *
+from exceptions import *
 from service import TradeService
 import argparse
 import asyncio
@@ -85,13 +86,19 @@ def embed_ad(ad: Ad, author: User) -> disnake.Embed:
         embed.set_footer(text=f'🔒 Non-Negotiable')
     return embed
 
-def embed_bid(bid: Bid, author: User) -> disnake.Embed:
+
+def embed_bid(bid: Bid, bidder: User, author: User) -> disnake.Embed:
+    ad = trade_service.find_ad(bid.ad_id)
+    if not ad:
+        raise AdNotFoundException()
+    description = ' just bid ' + bid.bid_content + ' for ' + author.name + '\'s '
+    description += ad.offer
     embed = disnake.Embed(
-        title=title,
+        title=bidder.name,
         description=description,
         colour=disnake.Colour.orange() if is_buy else disnake.Colour.green()
     )
-
+    return embed
 
 
 # -------------------------------------------------------------
@@ -110,6 +117,7 @@ TBI = 'To be implemented'
 
 # -------------------------------------------------------------
 
+
 async def signal_trade(ctx, intention, offer, returns, negotiable):
     if len(offer) > 280:
         await ctx.send('Offer' + INVALID_PROPOSAL_ERROR)
@@ -121,30 +129,35 @@ async def signal_trade(ctx, intention, offer, returns, negotiable):
     if not item:
         await ctx.send(INVALID_ITEM_ERROR)
         return
-    ad = trade_service.add_ad(intention, offer, returns, negotiable, ctx.author)
+    ad = trade_service.add_ad(
+        intention, offer, returns, negotiable, ctx.author)
     await ctx.send(embed=embed_ad(ad, ctx.author))
 
 
 @bot.slash_command()
-async def sell(ctx, offer: str, returns: str, negotiable: bool=True):
+async def sell(ctx, offer: str, returns: str, negotiable: bool = True):
     await signal_trade(ctx, 'sell', offer, returns, negotiable)
 
 
 @bot.slash_command()
-async def buy(ctx, offer: str, returns: str, negotiable: bool=True):
+async def buy(ctx, offer: str, returns: str, negotiable: bool = True):
     await signal_trade(ctx, 'buy', offer, returns, negotiable)
 
+
 @bot.slash_command()
-async def search(ctx, query: str=None, user: User=None):
+async def search(ctx, query: str = None, user: User = None):
     if not query and not user:
         await ctx.send(INVALID_SEARCH)
         return
     ads = trade_service.search(search_query=query, user=user)
     if not ads:
-        if random.randint(0,1) % 2 == 0:
+        rand = random.randint(0, 1) % 3
+        if rand == 0:
             emoji = '<:youdidwhat:934477030525919242>'
-        else:
+        elif rand == 1:
             emoji = '<:what:934477030618177566>'
+        else:
+            emoji = '<:pepenosign:934477030270066740>'
         await ctx.send('No results ' + emoji)
     for ad in ads:
         author = await bot.fetch_user(ad.author_id)
@@ -163,12 +176,9 @@ async def remove(ctx, ad_id: int):
 
 @bot.slash_command()
 async def bid(ctx, ad_id: int, bid_content: str):
-    try:
-        bid = trade_service.bid(ad_id, bid_content, ctx.author)
-        await ctx.send('Bid sent')
-    except Exception as e:
-        print(e)
-        await ctx.send('Something went wrong. Try again later')
+    bid = trade_service.bid(ad_id, bid_content, ctx.author)
+    author = await bot.fetch_user(ad.author_id)
+    await ctx.send(embed=embed_bid(bid, ctx.author, author))
 
 
 @bot.slash_command()
