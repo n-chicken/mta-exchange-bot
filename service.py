@@ -14,7 +14,10 @@ class SignalService:
         sess.commit()
 
     def list_auctions(self, user: User=None):
-        pass
+        q = sess.query(Auction)
+        if user is not None:
+            q = q.filter_by(author=user)
+        return list(q)
 
     def rm_auction(self, user: User):
         pass

@@ -59,8 +59,8 @@ async def create(ctx, item_sold: str, item_recv: str, intention: str, item_sold_
 
 @auction.sub_command()
 async def list(ctx, user: User=None):
-    signal_service
-    await ctx.send('To be implemented')
+    auctions = signal_service.list_auctions(user)
+    await ctx.send('Auctions: ' + str(auctions))
 
 @bot.slash_command()
 async def info(ctx):
