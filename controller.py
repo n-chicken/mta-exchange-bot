@@ -1,20 +1,21 @@
 #!/usr/bin/env python
-import discord
-from discord.ext import commands
-import asyncio
 # from discord_slash import SlashCommand, SlashContext
 # from discord_slash.utils.manage_commands import create_choice, create_option
-import disnake
+from datetime import datetime
+from discord.ext import commands
 from disnake import User
 from disnake.ext import commands
-from datetime import datetime
-import os
-import re
-import argparse
-import sys
-import json
 from entities import *
 from service import TradeService
+import argparse
+import asyncio
+import discord
+import disnake
+import json
+import os
+import random
+import re
+import sys
 
 # -------------------------------------------------------------
 
@@ -53,6 +54,7 @@ def find_item_in_offer(offer):
     return min(item_index, key=item_index.get)
 
 
+# https://leovoel.github.io/embed-visualizer/
 def create_embed(ad: Ad, author: User) -> disnake.Embed:
     is_buy = ad.intention == 'buy'
     title = f'Ad #{ad.id}'
@@ -128,16 +130,23 @@ async def buy(ctx, offer: str, returns: str, negotiable: bool=True):
     await signal_trade(ctx, 'buy', offer, returns, negotiable)
 
 @bot.slash_command()
-async def search(ctx, item: str=None, user: User=None):
-    if not item and not user:
+async def search(ctx, query: str=None, user: User=None):
+    if not query and not user:
         await ctx.send(INVALID_SEARCH)
         return
-    if item not in items:
-        await ctx.send(INVALID_TARGET_ITEM)
-        return
-    ads = trade_service.search(item=item, user=user)
+    # if item not in items:
+    #     await ctx.send(INVALID_TARGET_ITEM)
+    #     return
+    ads = trade_service.search(search_query=query, user=user)
+    if not ads:
+        if random.randint(0,1) % 2 == 0:
+            emoji = '<:youdidwhat:934477030525919242>'
+        else:
+            emoji = '<:what:934477030618177566>'
+        await ctx.send('No results ')
     for ad in ads:
-        await ctx.send(embed=create_embed(ad, ad.author))
+        author = bot.get_user(ad.author_id)
+        await ctx.send(embed=create_embed(ad, author))
 
 
 @bot.slash_command()
