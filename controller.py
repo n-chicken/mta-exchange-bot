@@ -13,8 +13,8 @@ import re
 import argparse
 import sys
 import json
-from signals import *
-from service import SignalService
+from entities import *
+from service import TradeService
 
 # -------------------------------------------------------------
 
@@ -35,30 +35,56 @@ bot = commands.Bot(test_guilds=[args.guild])
 
 items = json.load(open('data/minecraft-items.json'))
 
-signal_service = SignalService()
+trade_service = TradeService()
 
 # -------------------------------------------------------------
 
 
-def create_embed(auction: Auction) -> disnake.Embed:
-    is_buy = auction.intention == 'buy'
-    item = auction.item_recv if is_buy else self.auction
-    embed = disnake.Embed(
-        title='Buying' if is_buy else 'Selling',
-        description=item,
-        colour=disnake.Colour.white() if is_buy else disnake.Colour.green()
-    )
-    file = disnake.File(f'data/item-icons/{item}.png', filename="image.png")
-    embed.set_thumbnail(file=file)
-    # embed.set_thumbnail(url='attachment://image.png')
-    # embed.set_author(name="Author Name",
-    #                  icon_url="https://cdn.discordapp.com/attachments/520265639680671747/533389224913797122/rtgang.jpeg")
-    # embed.add_field(name="Field Name", value="Field Value", inline=False)
-    # embed.add_field(name="Field Name", value="Field Value", inline=True)
-    # embed.add_field(name="Field Name", value="Field Value", inline=True)
+def find_item_in_offer(offer):
+    item_index = {}
+    for item in items:
+        try:
+            index = offer.index(item)
+            item_index[item] = index
+        except:
+            continue
+    if not item_index:
+        return 'kit'
+    return min(item_index, key=item_index.get)
 
-    if auction.limit:
-        embed.set_footer(text=f'auction.limit')
+
+def create_embed(ad: Ad, author: User) -> disnake.Embed:
+    is_buy = ad.intention == 'buy'
+    title = f'Ad #{ad.id}'
+    description = 'Is ' + ('looking to buy ' if is_buy else 'selling ') + ad.offer
+    target_item = find_item_in_offer(ad.offer)
+    other_item = find_item_in_offer(ad.returns)
+    if is_buy:
+        description += ' and expects ' + ad.returns
+    else:
+        description += ' and offers ' + ad.returns
+    embed = disnake.Embed(
+        title=title,
+        description=description,
+        colour=disnake.Colour.orange() if is_buy else disnake.Colour.green()
+    )
+    if target_item and target_item != 'kit':
+        file_target_item = disnake.File(
+            f'data/item-icons/{target_item}.png', filename="target.png")
+        embed.set_thumbnail(file=file_target_item)
+    if other_item and other_item != 'kit':
+        file_other_item = disnake.File(
+            f'data/item-icons/{other_item}.png', filename="other.png")
+        embed.set_image(file=file_other_item)
+    if author:
+        embed.set_author(name=author.name, icon_url=author.display_avatar.url)
+    # embed.add_field(name="FN1", value="FV1", inline=True)
+    # embed.add_field(name="FN2", value="FV2", inline=True)
+
+    if ad.negotiable:
+        embed.set_footer(text=f'This ad is negotiable')
+    else:
+        embed.set_footer(text=f'Non-Negotiable')
     return embed
 
 # -------------------------------------------------------------
@@ -70,59 +96,68 @@ async def on_ready():
 
 # -------------------------------------------------------------
 
+INVALID_ITEM_ERROR = 'Target item must be a valid minecraft string id or a kit'
+INVALID_PROPOSAL_ERROR = ' must be at most 280 characters long'
+INVALID_SEARCH = 'Search for either a user or an item or both'
+INVALID_TARGET_ITEM = 'Target item must be a valid minecraft string id or a kit'
+TBI = 'To be implemented'
+
+# -------------------------------------------------------------
+
+async def signal_trade(ctx, intention, offer, returns, negotiable):
+    if len(offer) > 280:
+        await ctx.send('Offer' + INVALID_PROPOSAL_ERROR)
+        return
+    if len(returns) > 280:
+        await ctx.send('Returns' + INVALID_PROPOSAL_ERROR)
+        return
+    if offer not in items and 'kit' not in offer.lower():
+        await ctx.send(INVALID_ITEM_ERROR)
+        return
+    ad = trade_service.add_ad(intention, offer, returns, negotiable, ctx.author)
+    await ctx.send(embed=create_embed(ad, ctx.author))
+
 
 @bot.slash_command()
-async def auction(ctx):
-    await asyncio.sleep(0)
+async def sell(ctx, offer: str, returns: str, negotiable: bool=True):
+    await signal_trade(ctx, 'sell', offer, returns, negotiable)
 
 
-@auction.sub_command()
-async def create(ctx, item_sold: str, item_recv: str, intention: str, item_sold_amount: int, item_recv_amount: int, limit=None):
-    if intention not in ['buy', 'sell']:
-        await ctx.send('Intention must be either to `buy` or `sell`')
-    signal_service.add_auction(item_sold, item_recv, ctx.author,
-                               intention, item_sold_amount, item_recv_amount, limit)
-    await ctx.send('Auction created')
+@bot.slash_command()
+async def buy(ctx, offer: str, returns: str, negotiable: bool=True):
+    await signal_trade(ctx, 'buy', offer, returns, negotiable)
 
-
-@auction.sub_command()
-async def list(ctx, user: User = None):
-    auctions = signal_service.list_auctions(user)
-    if user:
-        for auction in auctions:
-            await ctx.send(embed=create_embed(auction))
-    else:
-        await ctx.send('Auctions: ' + str(auctions))
+@bot.slash_command()
+async def search(ctx, item: str=None, user: User=None):
+    if not item and not user:
+        await ctx.send(INVALID_SEARCH)
+        return
+    if item not in items:
+        await ctx.send(INVALID_TARGET_ITEM)
+        return
+    ads = trade_service.search(item=item, user=user)
+    for ad in ads:
+        await ctx.send(embed=create_embed(ad, ad.author))
 
 
 @bot.slash_command()
 async def info(ctx):
-    await ctx.send('To be implemented')
-
-
-@bot.slash_command()
-async def buying(ctx):
-    await ctx.send('To be implemented')
-
-
-@bot.slash_command()
-async def selling(ctx):
-    await ctx.send('To be implemented')
+    await ctx.send(TBI)
 
 
 @bot.slash_command()
 async def remove(ctx):
-    await ctx.send('To be implemented')
+    await ctx.send(TBI)
 
 
 @bot.slash_command()
 async def bid(ctx, user: disnake.User):
-    await ctx.send('To be implemented')
+    await ctx.send(TBI)
 
 
 @bot.slash_command()
 async def source(ctx):
-    await ctx.send('To be implemented')
+    await ctx.send(TBI)
 
 # -------------------------------------------------------------
 

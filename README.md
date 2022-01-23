@@ -6,7 +6,7 @@ Disclaimer: We're not responsible for users that act in bad-faith, so trade wise
 
 ## Premises
 - Each auction, bid, and buying and selling intention (added via /auction, /bid, /buying or /selling commands) has a integer ID, and each can be refered to as a "signal".
-- Auctions work both-ways, meaning that you can auction an item to be sold for the highest bidder, or you can auction an item to be bought from the lowest bidder.
+- Auctions work both-ways, meaning that you can auction an item to be sold to the highest bidder, or you can auction an item to be bought from the lowest bidder, optionally specifying returns.
 
 ## Commands
 

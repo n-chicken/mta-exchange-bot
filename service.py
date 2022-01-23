@@ -1,23 +1,20 @@
 #!/usr/bin/env python
-from signals import Signal
 from disnake import User
 from sql_base import *
-from signals import *
+from entities import *
 
 sess = session_factory()
 
-class SignalService:
+class TradeService:
 
-    def add_auction(self, item_sold: str, item_recv: str, intention: str, item_sold_amount: int, item_recv_amount: int, user: User, limit=None):
-        auction = Auction(item_sold, item_recv, intention, item_sold_amount, item_recv_amount, user, limit)
-        sess.add(auction)
+    def add_ad(self, intention, offer, returns, negotiable, user: User):
+        ad = Ad(intention, offer, returns, negotiable, user)
+        sess.add(ad)
         sess.commit()
+        return ad
 
-    def list_auctions(self, user: User=None):
-        q = sess.query(Auction)
+    def list_ads(self, user: User=None):
+        q = sess.query(Ad)
         if user is not None:
-            q = q.filter_by(author=user)
+            q = q.filter_by(author=user.id)
         return list(q)
-
-    def rm_auction(self, user: User):
-        pass
