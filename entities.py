@@ -43,3 +43,7 @@ class Bid(Base):
     __mapper_args__ = {
         'polymorphic_identity': 'bid',
     }
+
+    def __init__(self, ad_id, bid_content):
+        self.ad_id = ad_id
+        self.bid_content = bid_content

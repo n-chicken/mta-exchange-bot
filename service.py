@@ -4,6 +4,7 @@ from sql_base import *
 from entities import *
 from sqlalchemy import or_
 from sqlalchemy import and_
+from exceptions import *
 
 sess = session_factory()
 
@@ -24,3 +25,17 @@ class TradeService:
         if user is not None:
             q = q.filter_by(author_id=user.id)
         return q.all()
+
+    def find_ad(self, id):
+        return sess.query(Ad).filter_by(id=id).first()
+
+    def bid(self, ad_id, bid_content):
+        ad = self.find_ad(ad_id)
+        if not ad:
+            raise AdNotFoundException()
+        bid = Bid(ad.id, bid_content)
+        sess.add(bid)
+        sess.commit()
+        return bid
+
+        

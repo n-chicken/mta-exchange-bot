@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-# from discord_slash import SlashCommand, SlashContext
-# from discord_slash.utils.manage_commands import create_choice, create_option
 from datetime import datetime
 from discord.ext import commands
 from disnake import User
@@ -41,11 +39,11 @@ trade_service = TradeService()
 # -------------------------------------------------------------
 
 
-def find_item_in_offer(offer):
+def find_item(string):
     item_index = {}
     for item in items:
         try:
-            index = offer.index(item)
+            index = string.index(item)
             item_index[item] = index
         except:
             continue
@@ -55,12 +53,12 @@ def find_item_in_offer(offer):
 
 
 # https://leovoel.github.io/embed-visualizer/
-def create_embed(ad: Ad, author: User) -> disnake.Embed:
+def embed_ad(ad: Ad, author: User) -> disnake.Embed:
     is_buy = ad.intention == 'buy'
     title = f'Ad #{ad.id}'
     description = 'Is ' + ('looking to buy ' if is_buy else 'selling ') + ad.offer
-    target_item = find_item_in_offer(ad.offer)
-    other_item = find_item_in_offer(ad.returns)
+    target_item = find_item(ad.offer)
+    other_item = find_item(ad.returns)
     if is_buy:
         description += ' and expects ' + ad.returns
     else:
@@ -88,6 +86,15 @@ def create_embed(ad: Ad, author: User) -> disnake.Embed:
     else:
         embed.set_footer(text=f'Non-Negotiable')
     return embed
+
+def embed_bid(bid: Bid, author: User) -> disnake.Embed:
+    embed = disnake.Embed(
+        title=title,
+        description=description,
+        colour=disnake.Colour.orange() if is_buy else disnake.Colour.green()
+    )
+
+
 
 # -------------------------------------------------------------
 
@@ -117,7 +124,7 @@ async def signal_trade(ctx, intention, offer, returns, negotiable):
         await ctx.send(INVALID_ITEM_ERROR)
         return
     ad = trade_service.add_ad(intention, offer, returns, negotiable, ctx.author)
-    await ctx.send(embed=create_embed(ad, ctx.author))
+    await ctx.send(embed=embed_ad(ad, ctx.author))
 
 
 @bot.slash_command()
@@ -143,10 +150,10 @@ async def search(ctx, query: str=None, user: User=None):
             emoji = '<:youdidwhat:934477030525919242>'
         else:
             emoji = '<:what:934477030618177566>'
-        await ctx.send('No results ')
+        await ctx.send('No results ' + emoji)
     for ad in ads:
-        author = bot.get_user(ad.author_id)
-        await ctx.send(embed=create_embed(ad, author))
+        author = await bot.fetch_user(ad.author_id)
+        await ctx.send(embed=embed_ad(ad, author))
 
 
 @bot.slash_command()
@@ -155,13 +162,18 @@ async def info(ctx):
 
 
 @bot.slash_command()
-async def remove(ctx):
+async def remove(ctx, ad_id: int):
     await ctx.send(TBI)
 
 
 @bot.slash_command()
-async def bid(ctx, user: disnake.User):
-    await ctx.send(TBI)
+async def bid(ctx, ad_id: int, bid_content: str):
+    try:
+        bid = trade_service.bid(ad_id, bid_content)
+        await ctx.send('Bid sent')
+    except Exception as e:
+        print(e)
+        await ctx.send('Something went wrong. Try again later')
 
 
 @bot.slash_command()
