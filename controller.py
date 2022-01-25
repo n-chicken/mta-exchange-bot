@@ -163,7 +163,7 @@ def embed_bid(bid: Bid, bidder: User, author: User) -> Embed:
 
 @bot.event
 async def on_ready():
-    print(f"Logged in as {bot.user} (ID: {bot.user.id})")
+    print(f"Logged in as {bot.user}, ID: {bot.user.id}")
 
 # -------------------------------------------------------------
 
@@ -275,6 +275,8 @@ async def help(ctx):
 /bid
 /remove
 /source
+/review
+/reviews
     """
     await ctx.send(help)
 
