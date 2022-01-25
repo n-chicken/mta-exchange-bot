@@ -45,12 +45,12 @@ def find_item(string):
     for item in items:
         try:
             index = string.index(item)
-            item_index[item] = index
+            item_index[item] = len(item)
         except:
             continue
     if not item_index:
         return 'kit' if 'kit' in string else None
-    return min(item_index, key=item_index.get)
+    return max(item_index, key=item_index.get)
 
 
 # https://leovoel.github.io/embed-visualizer/
@@ -73,11 +73,11 @@ def embed_ad(ad: Ad, author: User) -> disnake.Embed:
         aux = target_item
         target_item = other_item
         other_item = aux
-    if target_item and target_item != 'kit':
+    if target_item and target_item not in ['air', 'kit']:
         file_target_item = disnake.File(
             f'data/item-icons/{target_item}.png', filename="target.png")
         embed.set_thumbnail(file=file_target_item)
-    if other_item and other_item != 'kit':
+    if other_item and other_item not in ['air', 'kit']:
         file_other_item = disnake.File(
             f'data/item-icons/{other_item}.png', filename="other.png")
         embed.set_image(file=file_other_item)
@@ -94,10 +94,9 @@ def embed_bid(bid: Bid, bidder: User, author: User) -> disnake.Embed:
     is_ad_buy = ad.intention == 'buy'
     if not ad:
         raise AdNotFoundException()
-    description = ' just bid ' + bid.bid_content + ' for ' + author.name + '\'s '
-    description += ad.offer
+    description = bidder.name + ' just bid:\n\n' + bid.bid_content
     embed = disnake.Embed(
-        title=bidder.name,
+        title=f'Ad #{ad.id}',
         description=description,
         colour=disnake.Colour.blue() if is_ad_buy else disnake.Colour.yellow()
     )
@@ -112,7 +111,7 @@ def embed_bid(bid: Bid, bidder: User, author: User) -> disnake.Embed:
         file_other_item = disnake.File(
             f'data/item-icons/{ad_content_item}.png', filename="other.png")
         embed.set_image(file=file_other_item)
-
+    embed.set_footer(text='for ' + author.name + '\'s ' + ad.offer)
     embed.set_author(name=bidder.name, icon_url=bidder.display_avatar.url)
     return embed
 
@@ -128,6 +127,7 @@ async def on_ready():
 
 INVALID_PROPOSAL_ERROR = ' must be at most 280 characters long'
 INVALID_SEARCH = 'Search for either a user or an item or both'
+AD_OFFER_EQ_RETURNS = 'Offer may not be the same as expected returns'
 TBI = 'To be implemented'
 
 # -------------------------------------------------------------
@@ -197,6 +197,19 @@ async def bid(ctx, ad_id: int, bid_content: str):
 @bot.slash_command()
 async def source(ctx):
     await ctx.send(TBI)
+
+
+@bot.slash_command()
+async def help(ctx):
+    help = """
+Commands:
+/sell
+/buy
+/bid
+/remove - To be implemented
+/info - To be implemented
+    """
+    await ctx.send(help)
 
 # -------------------------------------------------------------
 
