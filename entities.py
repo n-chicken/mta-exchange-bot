@@ -6,18 +6,19 @@ from sql_base import Base
 from sqlalchemy.sql import func
 
 
-class UserRank(Base):
-    __tablename__ = 'user_rank'
+class UserReview(Base):
+    __tablename__ = 'user_review'
 
-    id = Column(Integer, autoincrement=True, primary_key=True)
+    reviewer_id = Column(BigInteger, primary_key=True)
+    reviewed_id = Column(BigInteger, primary_key=True)
+    rating = Column(Integer)
+    comment = Column(String(280))
 
-    def __init__(self, intention, offer, returns, negotiable, user):
-        self.intention = intention
-        self.offer = offer
-        self.returns = returns
-        self.negotiable = negotiable
-        self.author_id = user.id
-        self.author_name = user
+    def __init__(self, reviewer, reviewed, rating, comment):
+        self.reviewer_id = reviewer.id
+        self.reviewed_id = reviewed.id
+        self.rating = rating
+        self.comment = comment
 
 class Ad(Base):
     __tablename__ = 'ad'

@@ -2,11 +2,11 @@
 # code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')
 from datetime import datetime
 from discord.ext import commands
-from disnake import User, Colour, Embed
+from disnake import User, Colour, Embed, File
 from disnake.ext import commands
 from entities import *
 from exceptions import *
-from service import TradeService
+from service import *
 import argparse
 import asyncio
 import code
@@ -38,6 +38,7 @@ bot = commands.Bot(test_guilds=[args.guild])
 items = json.load(open('data/minecraft-items.json'))
 
 trade_service = TradeService()
+user_service = UserService()
 
 # -------------------------------------------------------------
 
@@ -80,25 +81,25 @@ def embed_ad(ad: Ad, author: User, deleted: bool = False, created: bool = False)
     other_item = find_item(ad.returns)
     if deleted:
         color = Colour.red()
+    elif is_buy:
+        color = Colour.orange()
     else:
-        color = Colour.orange() if is_buy else Colour.green()
-
+        color = Colour.green()
     embed = Embed(
         title=title,
         colour=color
     )
-
     if not is_buy:
         aux = target_item
         target_item = other_item
         other_item = aux
-        
+
     if target_item and target_item not in ['air', 'kit']:
-        file_target_item = disnake.File(
+        file_target_item = File(
             f'data/item-icons/{target_item}.png', filename="target.png")
         embed.set_thumbnail(file=file_target_item)
     if other_item and other_item not in ['air', 'kit']:
-        file_other_item = disnake.File(
+        file_other_item = File(
             f'data/item-icons/{other_item}.png', filename="other.png")
         embed.set_image(file=file_other_item)
     if author:
@@ -112,30 +113,46 @@ def embed_ad(ad: Ad, author: User, deleted: bool = False, created: bool = False)
     return embed
 
 
-def embed_bid(bid: Bid, bidder: User, author: User) -> disnake.Embed:
+def embed_user_info(user: User, mean_rating: float, peoples_comments: dict) -> Embed:
+    embed = Embed(
+        title=user.display_name,
+        description=f'Rating: {mean_rating}',
+        colour=Colour.purple()
+    )
+    embed.set_image(url=user.display_avatar.url)
+    for reviewer, review in peoples_comments.items():
+        rating, comment = review
+        if not comment:
+            comment = '.'
+        embed.add_field(
+            name=f'{reviewer} rated ' + '⭐'*rating, value=comment, inline=False)
+    return embed
+
+
+def embed_bid(bid: Bid, bidder: User, author: User) -> Embed:
     ad = trade_service.find_ad(bid.ad_id)
     is_ad_buy = ad.intention == 'buy'
     if not ad:
         raise AdNotFoundException()
-    embed = disnake.Embed(
-        title=f'Ad #{ad.id}',
-        colour=disnake.Colour.blue() if is_ad_buy else disnake.Colour.yellow()
+    embed = Embed(
+        title=f'Just bid on Ad #{ad.id}:',
+        description=bid.bid_content,
+        colour=Colour.blue() if is_ad_buy else Colour.yellow()
     )
     bid_content_item = find_item(bid.bid_content)
     if bid_content_item and bid_content_item != 'kit':
-        file_bid_content_item = disnake.File(
+        file_bid_content_item = File(
             f'data/item-icons/{bid_content_item}.png', filename="bid_content_item.png")
         embed.set_thumbnail(file=file_bid_content_item)
 
     ad_content_item = find_item(ad.offer)
     if ad_content_item and ad_content_item != 'kit':
-        file_other_item = disnake.File(
+        file_other_item = File(
             f'data/item-icons/{ad_content_item}.png', filename="other.png")
         embed.set_image(file=file_other_item)
     noun = 'request' if is_ad_buy else 'offer'
     embed.add_field(
-        name=f'Just bid on {author.display_name}\'s {noun} for:', value=ad.offer, inline=False)
-    embed.add_field(name='And proposes:', value=bid.bid_content, inline=False)
+        name=f'For {author.display_name}\'s {noun}:', value=ad.offer, inline=False)
     embed.set_author(name=bidder.display_name,
                      icon_url=bidder.display_avatar.url)
     return embed
@@ -156,6 +173,8 @@ AD_NOT_FOUND = 'Ad not found'
 UNAUTHORIZED = 'Unauthorized'
 AD_OFFER_EQ_RETURNS = 'Offer may not be the same as expected returns'
 TBI = 'To be implemented'
+INVALID_RATING = 'Rating must be between 1 and 5'
+ALREADY_REVIEWED = 'You already reviwed this user'
 
 # -------------------------------------------------------------
 
@@ -208,6 +227,30 @@ async def search(ctx, query: str = None, user: User = None, ad_id: int = None):
 
 
 @bot.slash_command()
+async def reviews(ctx, user: User):
+    mean_rating = user_service.get_mean_rating(user)
+    reviews = user_service.get_reviews(user)
+    peoples_comments = {}
+    for reviewer_id, rating, comment in reviews:
+        reviewer = await bot.fetch_user(reviewer_id)
+        peoples_comments[reviewer] = (rating, comment)
+    await ctx.send(embed=embed_user_info(user, mean_rating, peoples_comments))
+
+
+@bot.slash_command()
+async def review(ctx, user: User, rating: int, comment: str = None):
+    if not 0 <= rating <= 5:
+        await ctx.send(INVALID_RATING)
+        return
+    try:
+        review = user_service.review(ctx.author, user, rating, comment)
+    except AlreadyReviewedException:
+        await ctx.send(ALREADY_REVIEWED)
+    # await ctx.send(embed=embed_review(review))
+    await ctx.send('User reviewed')
+
+
+@bot.slash_command()
 async def remove(ctx, ad_id: int):
     try:
         ad = trade_service.remove_ad(ad_id, ctx.author)
@@ -226,8 +269,7 @@ async def source(ctx):
 
 @bot.slash_command()
 async def help(ctx):
-    help = """
-Commands:
+    help = """Commands:
 /sell
 /buy
 /bid

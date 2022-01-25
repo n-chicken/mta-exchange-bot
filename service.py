@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 from disnake import User
-from sql_base import *
 from entities import *
-from sqlalchemy import or_
-from sqlalchemy import and_
 from exceptions import *
+from sql_base import *
+from sqlalchemy import and_
+from sqlalchemy import or_
+import code
 
 sess = session_factory()
+
 
 class TradeService:
 
@@ -52,4 +54,32 @@ class TradeService:
         sess.commit()
         return bid
 
-        
+
+class UserService:
+
+    def review(self, reviewer, reviewed, rate, comment):
+        review = UserReview(reviewer, reviewed, rate, comment)
+        sess.add(review)
+        try:
+            sess.commit()
+            return review
+        except:
+            raise AlreadyReviewedException()
+
+    def get_mean_rating(self, user):
+        q = sess.query(UserReview)
+        q = q.filter_by(reviewed_id=user.id)
+        count = q.count()
+        if count == 0:
+            return 0
+        q = sess.query(func.sum(UserReview.rating))
+        q = q.filter_by(reviewed_id=user.id)
+        sum, = q.one()
+        # code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')
+        return sum/count
+
+    def get_reviews(self, user):
+        q = sess.query(UserReview.reviewer_id,
+                       UserReview.rating, UserReview.comment)
+        q = q.filter_by(reviewed_id=user.id)
+        return q.all()

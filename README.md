@@ -32,6 +32,7 @@ Disclaimer: We're not responsible for users that act in bad-faith, so trade wise
 - [ ] Users are to be directly notified when they receive an /bid
 - [ ] Limit ad count per player unless they're "very" trusted
 - [ ] Automatically remove old user data within a yet-to-be-determined time frame
+- [ ] Better search
 
 ## Setup / Contributing
 
