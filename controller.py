@@ -75,7 +75,7 @@ def embed_ad(ad: Ad, author: User, deleted: bool = False, created: bool = False)
     if deleted:
         title += 'Deleted '
     if created:
-        title += 'Posted '
+        title += 'posted '
     title += f'Ad #{ad.id}'
     target_item = find_item(ad.offer)
     other_item = find_item(ad.returns)
@@ -105,8 +105,8 @@ def embed_ad(ad: Ad, author: User, deleted: bool = False, created: bool = False)
     if author:
         embed.set_author(name=author.display_name,
                          icon_url=author.display_avatar.url)
-    verb = 'Expects' if is_buy else 'Offers'
-    embed.add_field(name=f'{verb}:', value=ad.offer, inline=False)
+    verb = 'Is looking to buy:' if is_buy else 'Is looking to sell:'
+    embed.add_field(name=f'{verb}', value=ad.offer, inline=False)
     embed.add_field(name='For:', value=ad.returns, inline=False)
     if not ad.negotiable:
         embed.set_footer(text=f'🔒 Non-Negotiable')
@@ -176,7 +176,6 @@ INVALID_SEARCH = 'Search for either a user or an item or both'
 AD_NOT_FOUND = 'Ad not found'
 UNAUTHORIZED = 'Unauthorized'
 AD_OFFER_EQ_RETURNS = 'Offer may not be the same as expected returns'
-TBI = 'To be implemented'
 INVALID_RATING = 'Rating must be between 1 and 5'
 ALREADY_REVIEWED = 'You already reviwed this user'
 CANT_RATE_URSLEF = 'Can\'t rate yourself, smartass'
@@ -202,8 +201,8 @@ async def sell(ctx, offer: str, returns: str, negotiable: bool = True):
 
 
 @bot.slash_command()
-async def buy(ctx, offer: str, returns: str, negotiable: bool = True):
-    await signal_trade(ctx, 'buy', offer, returns, negotiable)
+async def buy(ctx, thing_wanted: str, returns: str, negotiable: bool = True):
+    await signal_trade(ctx, 'buy', thing_wanted, returns, negotiable)
 
 
 @bot.slash_command()
