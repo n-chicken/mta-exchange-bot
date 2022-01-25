@@ -126,7 +126,6 @@ async def on_ready():
 
 # -------------------------------------------------------------
 
-INVALID_ITEM_ERROR = 'Target item must be a valid minecraft string id or a kit'
 INVALID_PROPOSAL_ERROR = ' must be at most 280 characters long'
 INVALID_SEARCH = 'Search for either a user or an item or both'
 TBI = 'To be implemented'
@@ -140,10 +139,6 @@ async def signal_trade(ctx, intention, offer, returns, negotiable):
         return
     if len(returns) > 280:
         await ctx.send('Returns' + INVALID_PROPOSAL_ERROR)
-        return
-    item = find_item(offer)
-    if not item:
-        await ctx.send(INVALID_ITEM_ERROR)
         return
     ad = trade_service.add_ad(
         intention, offer, returns, negotiable, ctx.author)
