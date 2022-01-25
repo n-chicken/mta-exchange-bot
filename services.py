@@ -4,6 +4,7 @@ from entities import *
 from exceptions import *
 from sql_base import *
 from sqlalchemy import and_
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy import or_
 import code
 
@@ -58,13 +59,22 @@ class TradeService:
 class UserService:
 
     def review(self, reviewer, reviewed, rate, comment):
-        review = UserReview(reviewer, reviewed, rate, comment)
-        sess.add(review)
-        try:
-            sess.commit()
-            return review
-        except:
-            raise AlreadyReviewedException()
+        persisted_review = self._find_review(reviewer.id, reviewed.id)
+        if persisted_review:
+            user_review = UserReview(reviewer, reviewed, 0, 0)
+            user_review.rating = rate
+            user_review.comment = comment
+        else:
+            user_review = UserReview(reviewer, reviewed, rate, comment)
+        sess.merge(user_review)
+        sess.commit()
+        return user_review
+
+    def _find_review(self, reviewer_id, reviewed_id):
+        q = sess.query(UserReview)
+        q = q.filter_by(reviewer_id=reviewer_id)
+        q = q.filter_by(reviewed_id=reviewed_id)
+        return q.one_or_none(),
 
     def get_mean_rating(self, user):
         q = sess.query(UserReview)
@@ -75,7 +85,6 @@ class UserService:
         q = sess.query(func.sum(UserReview.rating))
         q = q.filter_by(reviewed_id=user.id)
         sum, = q.one()
-        # code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')
         return sum/count
 
     def get_reviews(self, user):

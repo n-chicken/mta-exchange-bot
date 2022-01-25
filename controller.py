@@ -113,17 +113,21 @@ def embed_ad(ad: Ad, author: User, deleted: bool = False, created: bool = False)
     return embed
 
 
-def embed_user_info(user: User, mean_rating: float, peoples_comments: dict) -> Embed:
+def embed_user_info(user: User, mean_rating: float, peoples_comments: dict, from_: User = None) -> Embed:
+    if from_:
+        title = from_.display_name + ' rated ' + user.display_name
+    else:
+        title = user.display_name
     embed = Embed(
-        title=user.display_name,
-        description=f'Rating: {mean_rating}',
+        title=title,
+        description=f'Current rating: {mean_rating:.2f} - {"⭐"*int(mean_rating)}\n {"-"*20}',
         colour=Colour.purple()
     )
-    embed.set_image(url=user.display_avatar.url)
+    embed.set_thumbnail(url=user.display_avatar.url)
     for reviewer, review in peoples_comments.items():
         rating, comment = review
         if not comment:
-            comment = '.'
+            comment = '-'
         embed.add_field(
             name=f'{reviewer} rated ' + '⭐'*rating, value=comment, inline=False)
     return embed
@@ -226,28 +230,35 @@ async def search(ctx, query: str = None, user: User = None, ad_id: int = None):
         await ctx.send(embed=embed_ad(ad, ad_author))
 
 
-@bot.slash_command()
-async def reviews(ctx, user: User):
-    mean_rating = user_service.get_mean_rating(user)
-    reviews = user_service.get_reviews(user)
+async def dictfy_reviews(reviews):
     peoples_comments = {}
     for reviewer_id, rating, comment in reviews:
         reviewer = await bot.fetch_user(reviewer_id)
         peoples_comments[reviewer] = (rating, comment)
-    await ctx.send(embed=embed_user_info(user, mean_rating, peoples_comments))
+    return peoples_comments
 
 
 @bot.slash_command()
 async def review(ctx, user: User, rating: int, comment: str = None):
-    if not 0 <= rating <= 5:
+    if not (0 <= rating <= 5):
         await ctx.send(INVALID_RATING)
         return
     try:
         review = user_service.review(ctx.author, user, rating, comment)
     except AlreadyReviewedException:
         await ctx.send(ALREADY_REVIEWED)
+        return
     # await ctx.send(embed=embed_review(review))
-    await ctx.send('User reviewed')
+    mean_rating = user_service.get_mean_rating(user)
+    peoples_comments = await dictfy_reviews(user_service.get_reviews(user))
+    await ctx.send(embed=embed_user_info(user, mean_rating, peoples_comments, from_=ctx.author))
+
+
+@bot.slash_command()
+async def reviews(ctx, user: User):
+    mean_rating = user_service.get_mean_rating(user)
+    peoples_comments = await dictfy_reviews(user_service.get_reviews(user))
+    await ctx.send(embed=embed_user_info(user, mean_rating, peoples_comments))
 
 
 @bot.slash_command()
