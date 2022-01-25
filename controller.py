@@ -6,7 +6,7 @@ from disnake import User, Colour, Embed, File
 from disnake.ext import commands
 from entities import *
 from exceptions import *
-from service import *
+from services import *
 import argparse
 import asyncio
 import code
