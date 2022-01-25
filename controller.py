@@ -75,7 +75,7 @@ def embed_ad(ad: Ad, author: User, deleted: bool = False, created: bool = False)
     if deleted:
         title += 'Deleted '
     if created:
-        title += 'posted '
+        title += 'Posted '
     title += f'Ad #{ad.id}'
     target_item = find_item(ad.offer)
     other_item = find_item(ad.returns)
