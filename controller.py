@@ -179,6 +179,7 @@ AD_OFFER_EQ_RETURNS = 'Offer may not be the same as expected returns'
 TBI = 'To be implemented'
 INVALID_RATING = 'Rating must be between 1 and 5'
 ALREADY_REVIEWED = 'You already reviwed this user'
+CANT_RATE_URSLEF = 'Can\'t rate yourself, smartass'
 
 # -------------------------------------------------------------
 
@@ -240,6 +241,9 @@ async def dictfy_reviews(reviews):
 
 @bot.slash_command()
 async def review(ctx, user: User, rating: int, comment: str = None):
+    if user.id == ctx.author.id:
+        await ctx.send(CANT_RATE_URSLEF)
+        return
     if not (0 <= rating <= 5):
         await ctx.send(INVALID_RATING)
         return
