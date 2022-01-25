@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')
 from datetime import datetime
 from discord.ext import commands
 from disnake import User, Colour, Embed
@@ -8,6 +9,7 @@ from exceptions import *
 from service import TradeService
 import argparse
 import asyncio
+import code
 import discord
 import disnake
 import json
@@ -53,44 +55,44 @@ def rand_emoji():
 
 def find_item(string):
     item_len = {}
+    lower_string = string.lower()
     for item in items:
         try:
-            index = string.index(item)
+            index = lower_string.index(item)
             item_len[item] = len(item)
         except:
             continue
     if not item_len:
-        return 'kit' if 'kit' in string else None
+        return 'kit' if 'kit' in lower_string else None
     return max(item_len, key=item_len.get)
 
 
 # https://leovoel.github.io/embed-visualizer/
-def embed_ad(ad: Ad, author: User, deleted: bool = False) -> Embed:
+def embed_ad(ad: Ad, author: User, deleted: bool = False, created: bool = False) -> Embed:
     is_buy = ad.intention == 'buy'
     title = ''
     if deleted:
         title += 'Deleted '
+    if created:
+        title += 'Posted '
     title += f'Ad #{ad.id}'
-    description = 'Looking to ' + ('buy ' if is_buy else 'sell ') + ad.offer
     target_item = find_item(ad.offer)
     other_item = find_item(ad.returns)
-    if is_buy:
-        description += ' and offers ' + ad.returns
-    else:
-        description += ' and expects ' + ad.returns
     if deleted:
         color = Colour.red()
     else:
         color = Colour.orange() if is_buy else Colour.green()
+
     embed = Embed(
         title=title,
-        description=description,
         colour=color
     )
+
     if not is_buy:
         aux = target_item
         target_item = other_item
         other_item = aux
+        
     if target_item and target_item not in ['air', 'kit']:
         file_target_item = disnake.File(
             f'data/item-icons/{target_item}.png', filename="target.png")
@@ -100,8 +102,11 @@ def embed_ad(ad: Ad, author: User, deleted: bool = False) -> Embed:
             f'data/item-icons/{other_item}.png', filename="other.png")
         embed.set_image(file=file_other_item)
     if author:
-        embed.set_author(name=author.name, icon_url=author.display_avatar.url)
-
+        embed.set_author(name=author.display_name,
+                         icon_url=author.display_avatar.url)
+    verb = 'Expects' if is_buy else 'Offers'
+    embed.add_field(name=f'{verb}:', value=ad.offer, inline=False)
+    embed.add_field(name='For:', value=ad.returns, inline=False)
     if not ad.negotiable:
         embed.set_footer(text=f'🔒 Non-Negotiable')
     return embed
@@ -112,10 +117,8 @@ def embed_bid(bid: Bid, bidder: User, author: User) -> disnake.Embed:
     is_ad_buy = ad.intention == 'buy'
     if not ad:
         raise AdNotFoundException()
-    description = bidder.name + ' just bid:\n\n' + bid.bid_content
     embed = disnake.Embed(
         title=f'Ad #{ad.id}',
-        description=description,
         colour=disnake.Colour.blue() if is_ad_buy else disnake.Colour.yellow()
     )
     bid_content_item = find_item(bid.bid_content)
@@ -129,8 +132,12 @@ def embed_bid(bid: Bid, bidder: User, author: User) -> disnake.Embed:
         file_other_item = disnake.File(
             f'data/item-icons/{ad_content_item}.png', filename="other.png")
         embed.set_image(file=file_other_item)
-    embed.set_footer(text='for ' + author.name + '\'s ' + ad.offer)
-    embed.set_author(name=bidder.name, icon_url=bidder.display_avatar.url)
+    noun = 'request' if is_ad_buy else 'offer'
+    embed.add_field(
+        name=f'Just bid on {author.display_name}\'s {noun} for:', value=ad.offer, inline=False)
+    embed.add_field(name='And proposes:', value=bid.bid_content, inline=False)
+    embed.set_author(name=bidder.display_name,
+                     icon_url=bidder.display_avatar.url)
     return embed
 
 
@@ -143,7 +150,7 @@ async def on_ready():
 
 # -------------------------------------------------------------
 
-INVALID_PROPOSAL_ERROR = ' must be at most 280 characters long'
+PROPOSAL_TOO_LONG = ' must be at most 280 characters long'
 INVALID_SEARCH = 'Search for either a user or an item or both'
 AD_NOT_FOUND = 'Ad not found'
 UNAUTHORIZED = 'Unauthorized'
@@ -153,92 +160,16 @@ TBI = 'To be implemented'
 # -------------------------------------------------------------
 
 
-class Confirm(disnake.ui.View):
-    def __init__(self):
-        super().__init__()
-        self.value = None
-
-    # When the confirm button is pressed, set the inner value to `True` and
-    # stop the View from listening to more input.
-    # We also send the user an ephemeral message that we're confirming their choice.
-    @disnake.ui.button(label="Confirm", style=disnake.ButtonStyle.green)
-    async def confirm(self, button: disnake.ui.Button, interaction: disnake.MessageInteraction):
-        await interaction.response.send_message("Confirming", ephemeral=True)
-        self.value = True
-        self.stop()
-
-    # This one is similar to the confirmation button except sets the inner value to `False`
-    @disnake.ui.button(label="Cancel", style=disnake.ButtonStyle.grey)
-    async def cancel(self, button: disnake.ui.Button, interaction: disnake.MessageInteraction):
-        await interaction.response.send_message("Cancelling", ephemeral=True)
-        self.value = False
-        self.stop()
-
-
-class Menu(disnake.ui.View):
-    def __init__(self, embeds: list[disnake.Embed]):
-        super().__init__(timeout=None)
-
-        # Sets the embed list variable.
-        self.embeds = embeds
-
-        # Current embed number.
-        self.embed_count = 0
-
-        # Disables previous page button by default.
-        self.prev_page.disabled = True
-
-        # Sets the footer of the embeds with their respective page numbers.
-        for i, embed in enumerate(self.embeds):
-            embed.set_footer(text=f"Page {i + 1} of {len(self.embeds)}")
-
-    @disnake.ui.button(label="Previous page", emoji="◀️", style=disnake.ButtonStyle.red)
-    async def prev_page(self, button: disnake.ui.Button, interaction: disnake.MessageInteraction):
-        # Decrements the embed count.
-        self.embed_count -= 1
-
-        # Gets the embed object.
-        embed = self.embeds[self.embed_count]
-
-        # Enables the next page button and disables the previous page button if we're on the first embed.
-        self.next_page.disabled = False
-        if self.embed_count == 0:
-            self.prev_page.disabled = True
-
-        await interaction.response.edit_message(embed=embed, view=self)
-
-    @disnake.ui.button(label="Quit", emoji="❌", style=disnake.ButtonStyle.red)
-    async def remove(self, button: disnake.ui.Button, interaction: disnake.MessageInteraction):
-        await interaction.response.edit_message(view=None)
-
-    @disnake.ui.button(label="Next page", emoji="▶️", style=disnake.ButtonStyle.green)
-    async def next_page(self, button: disnake.ui.Button, interaction: disnake.MessageInteraction):
-        # Increments the embed count.
-        self.embed_count += 1
-
-        # Gets the embed object.
-        embed = self.embeds[self.embed_count]
-
-        # Enables the previous page button and disables the next page button if we're on the last embed.
-        self.prev_page.disabled = False
-        if self.embed_count == len(self.embeds) - 1:
-            self.next_page.disabled = True
-
-        await interaction.response.edit_message(embed=embed, view=self)
-
-# -------------------------------------------------------------
-
-
 async def signal_trade(ctx, intention, offer, returns, negotiable):
     if len(offer) > 280:
-        await ctx.send('Offer' + INVALID_PROPOSAL_ERROR)
+        await ctx.send('Offer' + PROPOSAL_TOO_LONG)
         return
     if len(returns) > 280:
-        await ctx.send('Returns' + INVALID_PROPOSAL_ERROR)
+        await ctx.send('Returns' + PROPOSAL_TOO_LONG)
         return
     ad = trade_service.add_ad(
         intention, offer, returns, negotiable, ctx.author)
-    await ctx.send(embed=embed_ad(ad, ctx.author))
+    await ctx.send(embed=embed_ad(ad, ctx.author, created=True))
 
 
 @bot.slash_command()
@@ -252,21 +183,28 @@ async def buy(ctx, offer: str, returns: str, negotiable: bool = True):
 
 
 @bot.slash_command()
+async def bid(ctx, ad_id: int, bid_content: str):
+    if len(bid_content) > 280:
+        await ctx.send(PROPOSAL_TOO_LONG)
+        return
+    bid = trade_service.bid(ad_id, bid_content, ctx.author)
+    ad = trade_service.find_ad(bid.ad_id)
+    ad_author = await bot.fetch_user(ad.author_id)
+    await ctx.send(embed=embed_bid(bid, ctx.author, ad_author))
+
+
+@bot.slash_command()
 async def search(ctx, query: str = None, user: User = None, ad_id: int = None):
     if not (query or user or ad_id):
         await ctx.send(INVALID_SEARCH)
         return
     ads = trade_service.search(search_query=query, user=user, ad_id=ad_id)
     if not ads:
-        emoji = rand_emoji()
-        await ctx.send('No results ' + emoji)
-    embeds = []
+        await ctx.send('No results ' + rand_emoji())
+        return
     for ad in ads:
         ad_author = await bot.fetch_user(ad.author_id)
-        embeds += [embed_ad(ad, ad_author)]
-
-    embeds[0].set_footer(text=f"Page 1 of {len(embeds)}")
-    await ctx.send(embed=embeds[0], view=Menu(embeds))
+        await ctx.send(embed=embed_ad(ad, ad_author))
 
 
 @bot.slash_command()
@@ -279,15 +217,6 @@ async def remove(ctx, ad_id: int):
         await ctx.send(AD_NOT_FOUND)
     except UnauthorizedException:
         await ctx.send(UNAUTHORIZED)
-
-
-@bot.slash_command()
-async def bid(ctx, ad_id: int, bid_content: str):
-    bid = trade_service.bid(ad_id, bid_content, ctx.author)
-    ad = trade_service.find_ad(bid.ad_id)
-    ad_author = await bot.fetch_user(ad.author_id)
-    bidder = ctx.author
-    await ctx.send(embed=embed_bid(bid, bidder, ad_author))
 
 
 @bot.slash_command()

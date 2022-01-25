@@ -4,43 +4,34 @@
 A way for anyone to show interest in buying or selling items on MTA. 
 Disclaimer: We're not responsible for users that act in bad-faith, so trade wisely.
 
-## Premises
-- Each auction, bid, and buying and selling intention (added via /auction, /bid, /buying or /selling commands) has a integer ID, and each can be refered to as a "signal".
-- Auctions work both-ways, meaning that you can auction an item to be sold to the highest bidder, or you can auction an item to be bought from the lowest bidder, optionally specifying returns.
-
 ## Commands
 
-- `/search <item ID | item name>` - should be able to list all signals containing item name or ID
+- `/search <item ID | user | ad ID>` - search for an ad
 
-- `/bid <user> <signal ID> <bid: string>` - makes a formal bid to a signal
+- `/bid <ad ID> <bid: string>` - makes a formal bid to an ad
 
-- `/buy` - signal that you're looking to buy something
+- `/buy <offer> <returns> <negotiable>` - signal that you're looking to buy something
 
-- `/selling` - signal that you're looking to sell something
+- `/sell <offer> <returns> <negotiable>` - signal that you're looking to sell something
 
-- `/info <user>` - lists all registered information about a user, including their signals - TBI
+- `/remove <ad ID>` - removes a previously added ad
 
-- `/remove <signal ID>` - removes a previously added signal - TBI
+- `/reviews <user>` - list user reviews
+
+- `/review <user> <rate> [comment]` - reviews a user's shop
 
 - `/source` - sends source file as a direct message - TBI
 
-## Roles
-
-- Unverified
-- Trusted (has at least one transaction confirmed by other verified member and has shown they own an IGN on MTA)
-- Very-Trusted (has at least 5 transactions confirmed by distinct verified members)
-
 ## To-do/Issues:
 
-- Create better help command & clarify command structure
-- Should "shops" be a thing?
-- Add autocomplete in contexts where item ids and names are possible arguments
-  - Maybe include popular kits?
-- Add trust-ranking system?
-- Users are to be directly notified when they receive an /bid
-- Limit signal count per player unless they're Very-Trusted
-- Should users be penalized if they don't have the item they are registered to sell or buy?
-  - Alternatively, automatically remove old user data within a yet-to-be-determined time frame
+- [x] Create better help command & clarify command structure
+- [x] Should "shops" be a thing?
+- [ ] ~~Add autocomplete in contexts where item ids and names are possible arguments~~
+  - ~~Maybe include popular kits?~~
+- ~~Add trust-ranking system?~~
+- [ ] Users are to be directly notified when they receive an /bid
+- [ ] Limit ad count per player unless they're "very" trusted
+- [ ] Automatically remove old user data within a yet-to-be-determined time frame
 
 ## Setup / Contributing
 

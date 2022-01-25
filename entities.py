@@ -6,6 +6,19 @@ from sql_base import Base
 from sqlalchemy.sql import func
 
 
+class UserRank(Base):
+    __tablename__ = 'user_rank'
+
+    id = Column(Integer, autoincrement=True, primary_key=True)
+
+    def __init__(self, intention, offer, returns, negotiable, user):
+        self.intention = intention
+        self.offer = offer
+        self.returns = returns
+        self.negotiable = negotiable
+        self.author_id = user.id
+        self.author_name = user
+
 class Ad(Base):
     __tablename__ = 'ad'
 
@@ -19,10 +32,6 @@ class Ad(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True))
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'ad'
-    }
 
     def __init__(self, intention, offer, returns, negotiable, user):
         self.intention = intention
@@ -41,10 +50,6 @@ class Bid(Base):
     bid_author_id = Column(BigInteger)
     bid_author_name = Column(String(64))
     bid_content = Column(String(280))
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'bid',
-    }
 
     def __init__(self, ad_id, bid_content, author_id, author_name):
         self.ad_id = ad_id

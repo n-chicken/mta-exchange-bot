@@ -33,7 +33,6 @@ class TradeService:
 
     def remove_ad(self, id, requesting_user):
         ad = self.find_ad(id)
-        print(ad.deleted_at)
         if not ad or ad.deleted_at:
             raise AdNotFoundException()
         if ad.author_id == requesting_user.id:
