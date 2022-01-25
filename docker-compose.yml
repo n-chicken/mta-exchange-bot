@@ -9,8 +9,8 @@ services:
       MYSQL_USER: mta
       MYSQL_ALLOW_EMPTY_PASSWORD: 'true'
       MYSQL_PASSWORD: mta
-      MYSQL_TCP_PORT: 3306
+      MYSQL_TCP_PORT: 3307
     cap_add:
       - SYS_NICE  # CAP_SYS_NICE, to clear error messages
     ports:
-      - "3306:3306"
+      - "3307:3307"
