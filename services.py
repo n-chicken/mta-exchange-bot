@@ -22,13 +22,14 @@ class TradeService:
     def search(self, search_query, user, ad_id):
         q = sess.query(Ad)
         if search_query is not None:
-            lhs_clause = Ad.offer.like(f'%{search_query}%')
-            rhs_clause = Ad.returns.like(f'%{search_query}%')
+            lhs_clause = Ad.offer.ilike(f'%{search_query}%')
+            rhs_clause = Ad.returns.ilike(f'%{search_query}%')
             q = q.filter(or_(lhs_clause, rhs_clause))
         if user is not None:
             q = q.filter_by(author_id=user.id)
         if ad_id is not None:
             q = q.filter_by(id=ad_id)
+        q = q.filter_by(deleted_at=None)
         return q.all()
 
     def find_ad(self, id) -> Ad:
