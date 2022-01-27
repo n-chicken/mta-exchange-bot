@@ -17,8 +17,10 @@ import os
 import random
 import re
 import sys
-
+from tendo.singleton import SingleInstance
 # -------------------------------------------------------------
+
+SingleInstance() 
 
 SOURCE_PATH = os.path.realpath(__file__)
 

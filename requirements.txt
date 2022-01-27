@@ -2,3 +2,4 @@ discord
 pymysql
 sqlalchemy
 disnake
+tendo
