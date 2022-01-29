@@ -10,9 +10,9 @@ Disclaimer: We're not responsible for users that act in bad-faith, so trade wise
 
 - `/bid <ad ID> <bid: string>` - makes a formal bid to an ad
 
-- `/buy <offer> <returns> <negotiable>` - signal that you're looking to buy something
+- `/buy <offer> <returns> [negotiable]` - signal that you're looking to buy something
 
-- `/sell <offer> <returns> <negotiable>` - signal that you're looking to sell something
+- `/sell <offer> <returns> [negotiable]` - signal that you're looking to sell something
 
 - `/remove <ad ID>` - removes a previously added ad
 

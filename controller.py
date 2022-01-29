@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')
 from datetime import datetime
-from discord.ext import commands
 from disnake import User, Colour, Embed, File
 from disnake.ext import commands
 from entities import *
@@ -20,17 +19,18 @@ import sys
 from tendo.singleton import SingleInstance
 # -------------------------------------------------------------
 
-SingleInstance() 
+SingleInstance()
 
-SOURCE_PATH = os.path.realpath(__file__)
-
+ADMIN_ID = 776924572896460830
+SHOP_CATEGORY_ID = 935334812603002950
+TEST_GUILD_ID = 815757801133441115
 BOT_TOKEN_KEY = 'MTA_EXCHANGE_DISCORD_BOT_TOKEN'
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='MTA Exchange v2 Bot')
     parser.add_argument('token', nargs='?',
                         default=os.environ.get(BOT_TOKEN_KEY))
-    parser.add_argument('-g', '--guild', type=int, default=815757801133441115)
+    parser.add_argument('-g', '--guild', type=int, default=TEST_GUILD_ID)
     args = parser.parse_args()
 else:
     sys.exit(1)
@@ -41,6 +41,9 @@ items = json.load(open('data/minecraft-items.json'))
 
 trade_service = TradeService()
 user_service = UserService()
+shop_service = ShopService()
+
+# shop_owner_permissions = Permissions()
 
 # -------------------------------------------------------------
 
@@ -122,7 +125,7 @@ def embed_user_info(user: User, mean_rating: float, peoples_comments: dict, from
         title = user.display_name
     embed = Embed(
         title=title,
-        description=f'Current rating: {mean_rating:.2f} - {"⭐"*int(mean_rating)}\n {"-"*20}',
+        description=f'Current rating: {mean_rating:.2f}\n{"⭐"*int(mean_rating)}\n{"-"*20}',
         colour=Colour.purple()
     )
     embed.set_thumbnail(url=user.display_avatar.url)
@@ -131,7 +134,7 @@ def embed_user_info(user: User, mean_rating: float, peoples_comments: dict, from
         if not comment:
             comment = '-'
         embed.add_field(
-            name=f'{reviewer} rated ' + '⭐'*rating, value=comment, inline=False)
+            name=f'{reviewer} rated\n' + '⭐'*rating, value=comment, inline=False)
     return embed
 
 
@@ -164,6 +167,13 @@ def embed_bid(bid: Bid, bidder: User, author: User) -> Embed:
     return embed
 
 
+async def dictfy_reviews(reviews):
+    peoples_comments = {}
+    for reviewer_id, rating, comment in reviews:
+        reviewer = await bot.fetch_user(reviewer_id)
+        peoples_comments[reviewer] = (rating, comment)
+    return peoples_comments
+
 # -------------------------------------------------------------
 
 
@@ -171,14 +181,27 @@ def embed_bid(bid: Bid, bidder: User, author: User) -> Embed:
 async def on_ready():
     print(f"Logged in as {bot.user}, ID: {bot.user.id}")
 
+
+@bot.event
+async def on_raw_reaction_add(reaction):
+    requester_id = reaction.user_id
+    owner_id = shop_service.get_owner(reaction.channel_id)
+    guild = await bot.get_guild(reaction.guild_id)
+    owner = await guild.get_member(owner_id)
+    dm_channel = await owner.create_dm()
+    await dm_channel.send(f'<@{requester_id}> has requested a clerk in your shop')
+    code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')
+    
 # -------------------------------------------------------------
 
 PROPOSAL_TOO_LONG = ' must be at most 280 characters long'
 INVALID_SEARCH = 'Search for either a user or an item or both'
 AD_NOT_FOUND = 'Ad not found'
 UNAUTHORIZED = 'Unauthorized'
+ALREADY_SHOP_OWNER = 'Already owns a shop'
+TBI = 'To be implemented'
 AD_OFFER_EQ_RETURNS = 'Offer may not be the same as expected returns'
-INVALID_RATING = 'Rating must be between 1 and 5'
+INVALID_RATING = 'Rating must be between 0 and 5'
 ALREADY_REVIEWED = 'You already reviwed this user'
 CANT_RATE_URSLEF = 'Can\'t rate yourself, smartass'
 
@@ -232,14 +255,6 @@ async def search(ctx, query: str = None, user: User = None, ad_id: int = None):
         await ctx.send(embed=embed_ad(ad, ad_author))
 
 
-async def dictfy_reviews(reviews):
-    peoples_comments = {}
-    for reviewer_id, rating, comment in reviews:
-        reviewer = await bot.fetch_user(reviewer_id)
-        peoples_comments[reviewer] = (rating, comment)
-    return peoples_comments
-
-
 @bot.slash_command()
 async def review(ctx, user: User, rating: int, comment: str = None):
     if user.id == ctx.author.id:
@@ -267,7 +282,7 @@ async def reviews(ctx, user: User):
 
 
 @bot.slash_command()
-async def remove(ctx, ad_id: int):
+async def remove_ad(ctx, ad_id: int):
     try:
         ad = trade_service.remove_ad(ad_id, ctx.author)
         ad_author = await bot.fetch_user(ad.author_id)
@@ -279,6 +294,35 @@ async def remove(ctx, ad_id: int):
 
 
 @bot.slash_command()
+async def create_shop(ctx, name=None):
+    user = ctx.author
+    if user.id != ADMIN_ID:
+        if shop_service.exists(user):
+            await ctx.send(ALREADY_SHOP_OWNER)
+            return
+
+    # text_channel_list = []
+    # for guild in bot.guilds:
+    #     for channel in guild.text_channels:
+    #         text_channel_list.append(channel)
+    # a = await text_channel_list[-1].history().flatten()
+
+    shops_category = disnake.utils.get(
+        ctx.guild.categories, id=SHOP_CATEGORY_ID)
+    new_channel = await ctx.guild.create_text_channel(name or ctx.author.display_name, category=shops_category)
+    message = await new_channel.send('React to this message to request the shop owner.')
+    await message.add_reaction('💰')
+    shop_owner_role = disnake.utils.get(user.server.roles, name="Shop Owner")
+    code.interact(banner='', local=globals().update(
+        locals()) or globals(), exitmsg='')
+
+    # everyone_role = ctx.guild.default_role
+    # member = await commands.MemberConverter().convert(ctx, user.id)
+    # user_perms = ctx.channel.overwrites_for(user)
+    # new_channel.set_permissions(user, user_perms)
+
+
+@bot.slash_command()
 async def source(ctx):
     await ctx.send('https://github.com/n-chicken/mta-exchange-bot')
 
@@ -286,13 +330,14 @@ async def source(ctx):
 @bot.slash_command()
 async def help(ctx):
     help = """Commands:
-/sell
-/buy
 /bid
-/remove
-/source
+/buy
+/create_shop
+/remove_ad
 /review
 /reviews
+/sell
+/source
     """
     await ctx.send(help)
 

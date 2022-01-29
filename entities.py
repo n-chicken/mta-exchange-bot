@@ -6,6 +6,17 @@ from sql_base import Base
 from sqlalchemy.sql import func
 
 
+class Shop(Base):
+    __tablename__ = 'shop'
+
+    owner_id = Column(BigInteger, primary_key=True)
+    channel_id = Column(BigInteger)
+
+    def __init__(self, owner_id, channel_id):
+        self.owner_id = owner_id
+        self.channel_id = channel_id
+
+
 class UserReview(Base):
     __tablename__ = 'user_review'
 
@@ -19,6 +30,7 @@ class UserReview(Base):
         self.reviewed_id = reviewed.id
         self.rating = rating
         self.comment = comment
+
 
 class Ad(Base):
     __tablename__ = 'ad'
