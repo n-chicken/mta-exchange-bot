@@ -31,11 +31,16 @@ if __name__ == '__main__':
     parser.add_argument('token', nargs='?',
                         default=os.environ.get(BOT_TOKEN_KEY))
     parser.add_argument('-g', '--guild', type=int, default=TEST_GUILD_ID)
+    parser.add_argument('-S', '--dont-sync-commands', action='store_false')
     args = parser.parse_args()
 else:
     sys.exit(1)
 
-bot = commands.Bot(test_guilds=[args.guild])
+bot = commands.Bot(
+    test_guilds=[args.guild],
+    sync_commands=args.sync_commands,
+    sync_commands_debug=False
+    )
 
 items = json.load(open('data/minecraft-items.json'))
 
@@ -186,11 +191,14 @@ async def on_ready():
 async def on_raw_reaction_add(reaction):
     requester_id = reaction.user_id
     owner_id = shop_service.get_owner(reaction.channel_id)
-    guild = await bot.get_guild(reaction.guild_id)
-    owner = await guild.get_member(owner_id)
-    dm_channel = await owner.create_dm()
-    await dm_channel.send(f'<@{requester_id}> has requested a clerk in your shop')
-    code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')
+    try:
+        guild = await bot.get_guild(reaction.guild_id)
+        owner = await guild.get_member(owner_id)
+        dm_channel = await owner.create_dm()
+        await dm_channel.send(f'<@{requester_id}> has requested a clerk in your shop')
+        code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')
+    except:
+        pass
     
 # -------------------------------------------------------------
 
@@ -313,8 +321,7 @@ async def create_shop(ctx, name=None):
     message = await new_channel.send('React to this message to request the shop owner.')
     await message.add_reaction('💰')
     shop_owner_role = disnake.utils.get(user.server.roles, name="Shop Owner")
-    code.interact(banner='', local=globals().update(
-        locals()) or globals(), exitmsg='')
+    code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')
 
     # everyone_role = ctx.guild.default_role
     # member = await commands.MemberConverter().convert(ctx, user.id)
