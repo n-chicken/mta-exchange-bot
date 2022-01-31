@@ -9,5 +9,5 @@ Base = declarative_base()
 
 
 def session_factory():
-#     Base.metadata.create_all(engine) # temporarily removed due to alembic revisions
+    Base.metadata.create_all(engine) # temporarily removed due to alembic revisions
     return _SessionFactory()
