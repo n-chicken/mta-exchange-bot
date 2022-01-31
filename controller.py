@@ -31,16 +31,17 @@ if __name__ == '__main__':
     parser.add_argument('token', nargs='?',
                         default=os.environ.get(BOT_TOKEN_KEY))
     parser.add_argument('-g', '--guild', type=int, default=TEST_GUILD_ID)
-    parser.add_argument('-S', '--dont-sync-commands', action='store_false')
+    parser.add_argument('-S', '--dont-sync-commands', action='store_true')
     args = parser.parse_args()
 else:
     sys.exit(1)
 
 bot = commands.Bot(
+    # command_prefix='$',
     test_guilds=[args.guild],
-    sync_commands=args.sync_commands,
+    sync_commands=not args.dont_sync_commands,
     sync_commands_debug=False
-    )
+)
 
 items = json.load(open('data/minecraft-items.json'))
 
@@ -190,16 +191,13 @@ async def on_ready():
 @bot.event
 async def on_raw_reaction_add(reaction):
     requester_id = reaction.user_id
-    owner_id = shop_service.get_owner(reaction.channel_id)
-    try:
-        guild = await bot.get_guild(reaction.guild_id)
-        owner = await guild.get_member(owner_id)
-        dm_channel = await owner.create_dm()
-        await dm_channel.send(f'<@{requester_id}> has requested a clerk in your shop')
-        code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')
-    except:
-        pass
-    
+    owner_id, = shop_service.get_owner_id(reaction.channel_id)
+    guild = bot.get_guild(reaction.guild_id)
+    owner = await guild.fetch_member(owner_id)
+    dm_channel = await owner.create_dm()
+    if requester_id != bot.user.id:
+        await dm_channel.send(f'<@{requester_id}> intends to make a purchase off your shop')
+
 # -------------------------------------------------------------
 
 PROPOSAL_TOO_LONG = ' must be at most 280 characters long'
@@ -302,31 +300,41 @@ async def remove_ad(ctx, ad_id: int):
 
 
 @bot.slash_command()
-async def create_shop(ctx, name=None):
+async def create_shop(ctx, name=None, emoji=None):
     user = ctx.author
-    if user.id != ADMIN_ID:
-        if shop_service.exists(user):
-            await ctx.send(ALREADY_SHOP_OWNER)
-            return
-
-    # text_channel_list = []
-    # for guild in bot.guilds:
-    #     for channel in guild.text_channels:
-    #         text_channel_list.append(channel)
-    # a = await text_channel_list[-1].history().flatten()
-
+    # if user.id != ADMIN_ID:
+    #     try:
+    #         exists = shop_service.exists(user)
+    #         code.interact(banner='', local=globals().update( locals()) or globals(), exitmsg='')
+    #         if exists:
+    #             await ctx.send(ALREADY_SHOP_OWNER)
+    #             return
+    #     except:
+    #         await ctx.send(ALREADY_SHOP_OWNER)
+    #         return
     shops_category = disnake.utils.get(
         ctx.guild.categories, id=SHOP_CATEGORY_ID)
     new_channel = await ctx.guild.create_text_channel(name or ctx.author.display_name, category=shops_category)
+    try:
+        shop_service.register(ctx.author, new_channel.id)
+    except:
+        pass  # remove
     message = await new_channel.send('React to this message to request the shop owner.')
-    await message.add_reaction('💰')
-    shop_owner_role = disnake.utils.get(user.server.roles, name="Shop Owner")
-    code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')
-
-    # everyone_role = ctx.guild.default_role
-    # member = await commands.MemberConverter().convert(ctx, user.id)
-    # user_perms = ctx.channel.overwrites_for(user)
-    # new_channel.set_permissions(user, user_perms)
+    await message.add_reaction(emoji or '💰')
+    shop_owner_role = disnake.utils.get(ctx.guild.roles, name="Shop Owner")
+    everyone_role = ctx.guild.default_role
+    owner = await ctx.guild.fetch_member(user.id)
+    owner_perms = ctx.channel.overwrites_for(owner)
+    everyone_perms = ctx.channel.overwrites_for(everyone_role)
+    everyone_perms.send_messages = False
+    everyone_perms.read_messages = True
+    everyone_perms.view_channel = True
+    owner_perms.read_messages = True
+    owner_perms.view_channel = True
+    owner_perms.send_messages = True
+    await new_channel.set_permissions(owner, overwrite=owner_perms)
+    await new_channel.set_permissions(everyone_role, overwrite=everyone_perms)
+    await owner.add_roles(shop_owner_role)
 
 
 @bot.slash_command()

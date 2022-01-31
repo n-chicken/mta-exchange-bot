@@ -60,7 +60,7 @@ class TradeService:
 class UserService:
 
     def review(self, reviewer, reviewed, rate, comment):
-        persisted_review = self._find_review(reviewer.id, reviewed.id)
+        persisted_review, = self._find_review(reviewer.id, reviewed.id)
         if persisted_review:
             user_review = UserReview(reviewer, reviewed, 0, 0)
             user_review.rating = rate
@@ -75,7 +75,7 @@ class UserService:
         q = sess.query(UserReview)
         q = q.filter_by(reviewer_id=reviewer_id)
         q = q.filter_by(reviewed_id=reviewed_id)
-        return q.one_or_none(),
+        return q.one_or_none()
 
     def get_mean_rating(self, user):
         q = sess.query(UserReview)
@@ -100,11 +100,11 @@ class ShopService:
     def exists(self, owner):
         return sess.query(Shop).filter_by(owner_id=owner.id).one_or_none()
 
-    def get_owner(self, channel_id):
+    def get_owner_id(self, channel_id):
         return sess.query(Shop.owner_id).filter_by(channel_id=channel_id).one_or_none()
 
     def register(self, owner, channel_id):
-        shop = Shop(owner, channel_id)
+        shop = Shop(owner.id, channel_id)
         sess.add(shop)
         sess.commit()
         return shop
