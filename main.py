@@ -24,15 +24,17 @@ SingleInstance()
 ADMIN_ID = 776924572896460830
 SHOP_CATEGORY_ID = 935334812603002950
 TEST_GUILD_ID = 815757801133441115
-BOT_TOKEN_KEY = 'MTA_EXCHANGE_DISCORD_BOT_TOKEN'
+ENV_TOKEN = os.environ.get('MTA_EXCHANGE_DISCORD_BOT_TOKEN')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='MTA Exchange v2 Bot')
-    parser.add_argument('token', nargs='?',
-                        default=os.environ.get(BOT_TOKEN_KEY))
+    parser.add_argument('token', nargs='?', default=ENV_TOKEN)
     parser.add_argument('-g', '--guild', type=int, default=TEST_GUILD_ID)
     parser.add_argument('-S', '--dont-sync-commands', action='store_true')
     args = parser.parse_args()
+    if not args.token:
+        print('Missing Discord token!', file=sys.stderr)
+        sys.exit(1)
 else:
     sys.exit(1)
 
@@ -48,8 +50,6 @@ items = json.load(open('data/minecraft-items.json'))
 trade_service = TradeService()
 user_service = UserService()
 shop_service = ShopService()
-
-# shop_owner_permissions = Permissions()
 
 # -------------------------------------------------------------
 
@@ -193,10 +193,11 @@ async def on_raw_reaction_add(reaction):
     requester_id = reaction.user_id
     owner_id, = shop_service.get_owner_id(reaction.channel_id)
     guild = bot.get_guild(reaction.guild_id)
-    owner = await guild.fetch_member(owner_id)
-    dm_channel = await owner.create_dm()
+    shop_owner = await guild.fetch_member(owner_id)
+    dm_channel = await shop_owner.create_dm()
     if requester_id != bot.user.id:
         await dm_channel.send(f'<@{requester_id}> intends to make a purchase off your shop')
+
 
 # -------------------------------------------------------------
 
@@ -302,16 +303,15 @@ async def remove_ad(ctx, ad_id: int):
 @bot.slash_command()
 async def create_shop(ctx, name=None, emoji=None):
     user = ctx.author
-    # if user.id != ADMIN_ID:
-    #     try:
-    #         exists = shop_service.exists(user)
-    #         code.interact(banner='', local=globals().update( locals()) or globals(), exitmsg='')
-    #         if exists:
-    #             await ctx.send(ALREADY_SHOP_OWNER)
-    #             return
-    #     except:
-    #         await ctx.send(ALREADY_SHOP_OWNER)
-    #         return
+    if user.id != ADMIN_ID:
+        try:
+            exists = shop_service.exists(user)
+            if exists:
+                await ctx.send(ALREADY_SHOP_OWNER)
+                return
+        except:
+            await ctx.send(ALREADY_SHOP_OWNER)
+            return
     shops_category = disnake.utils.get(
         ctx.guild.categories, id=SHOP_CATEGORY_ID)
     new_channel = await ctx.guild.create_text_channel(name or ctx.author.display_name, category=shops_category)

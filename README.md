@@ -6,9 +6,9 @@ Disclaimer: We're not responsible for users that act in bad-faith, so trade wise
 
 ## Commands
 
-- `/search <item ID | user | ad ID>` - search for an ad
+- `/search <user | query>` - search for ads
 
-- `/bid <ad ID> <bid: string>` - makes a formal bid to an ad
+- `/bid <ad ID> <your_bid>` - makes a formal bid to an ad
 
 - `/buy <offer> <returns> [negotiable]` - signal that you're looking to buy something
 
@@ -20,7 +20,9 @@ Disclaimer: We're not responsible for users that act in bad-faith, so trade wise
 
 - `/review <user> <rate> [comment]` - reviews a user's shop
 
-- `/source` - sends source file as a direct message - TBI
+- `/source` - sends source file as a direct message
+
+- `/create_shop` - creates a shop
 
 ## To-do/Issues:
 
@@ -33,8 +35,12 @@ Disclaimer: We're not responsible for users that act in bad-faith, so trade wise
 - [ ] Limit ad count per player unless they're "very" trusted
 - [ ] Automatically remove old user data within a yet-to-be-determined time frame
 - [ ] Better search
+- [ ] Handle disconnects
 
 ## Setup / Contributing
+
+### Version
+Python 3.8+
 
 ### Database
 
@@ -44,10 +50,16 @@ To run the database, just use `docker-compose up`. To reset it, run `docker-comp
 
 Follow this [tutorial on how to setup a discord bot](https://www.youtube.com/watch?v=ygc-HdZHO5A) to get a discord token key with the appropriate permissions. 
 
-After you have setup the database and got the key, just either run the script like the following or omit the key argument and set it as an environment variable called `MTA_EXCHANGE_DISCORD_BOT_TOKEN`: 
+After you have setup the database and got the key, set it as environment variable named `MTA_EXCHANGE_DISCORD_BOT_TOKEN`, then run the main script:
 
 ```
-python bot.py <your key> [-g <your channel's ID>]
+python main.py
 ```
 
-Notice you have to overwrite the guild ID with your channel for it to work outside MTA Exchange Discord Server. 
+Or just run the script like this:
+
+```
+python main.py <your_token>
+```
+
+Notice you have to overwrite the guild ID with your channel for it to work outside MTA Exchange Discord Server (`-g` flag). 
