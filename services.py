@@ -4,7 +4,7 @@ from entities import *
 from exceptions import *
 from sql_base import *
 from sqlalchemy import and_
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy import or_
 import code
 from time import sleep
@@ -36,6 +36,7 @@ def sql_error_handler(f):
         try:
             return f(*args, **kw)
         except OperationalError as e:
+            print(e, file=sys.stderr)
             recover_session()
     return wrapper
 
@@ -148,6 +149,6 @@ class ShopService:
     @sql_error_handler
     def register(self, owner, channel_id):
         shop = Shop(owner.id, channel_id)
-        sess.add(shop)
+        sess.merge(shop)
         sess.commit()
         return shop

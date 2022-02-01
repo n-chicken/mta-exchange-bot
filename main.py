@@ -191,11 +191,11 @@ async def on_ready():
 @bot.event
 async def on_raw_reaction_add(reaction):
     requester_id = reaction.user_id
-    owner_id, = shop_service.get_owner_id(reaction.channel_id)
-    guild = bot.get_guild(reaction.guild_id)
-    shop_owner = await guild.fetch_member(owner_id)
-    dm_channel = await shop_owner.create_dm()
     if requester_id != bot.user.id:
+        owner_id, = shop_service.get_owner_id(reaction.channel_id)
+        guild = bot.get_guild(reaction.guild_id)
+        shop_owner = await guild.fetch_member(owner_id)
+        dm_channel = await shop_owner.create_dm()
         await dm_channel.send(f'<@{requester_id}> intends to make a purchase off your shop')
 
 
@@ -329,6 +329,8 @@ async def create_shop(ctx, name=None, emoji=None):
     everyone_perms.send_messages = False
     everyone_perms.read_messages = True
     everyone_perms.view_channel = True
+    everyone_perms.read_message_history = True
+    owner_perms.manage_channels = True
     owner_perms.read_messages = True
     owner_perms.view_channel = True
     owner_perms.send_messages = True
