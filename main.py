@@ -309,7 +309,8 @@ async def create_shop(ctx, name=None, emoji=None):
             if exists:
                 await ctx.send(ALREADY_SHOP_OWNER)
                 return
-        except:
+        except Exception as e:
+            print(e)
             await ctx.send(ALREADY_SHOP_OWNER)
             return
     shops_category = disnake.utils.get(
