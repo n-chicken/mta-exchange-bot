@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy import or_
 import code
 from time import sleep
+import sys
 
 SESSION_TIMEOUT_SECONDS = 3
 
@@ -17,6 +18,7 @@ sess = session()
 
 
 def recover_session():
+    global sess
     if sess:
         try:
             sess.close()
@@ -79,6 +81,7 @@ class TradeService:
             ad.deleted_at = datetime.now()
             sess.add(ad)
             sess.commit()
+            sess.expunge_all()
             return ad
         else:
             raise UnauthorizedException()

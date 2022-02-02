@@ -303,16 +303,16 @@ async def remove_ad(ctx, ad_id: int):
 @bot.slash_command()
 async def create_shop(ctx, name=None, emoji=None):
     user = ctx.author
-    if user.id != ADMIN_ID:
-        try:
-            exists = shop_service.exists(user)
-            if exists:
-                await ctx.send(ALREADY_SHOP_OWNER)
-                return
-        except Exception as e:
-            print(e)
+    try:
+        exists = shop_service.exists(user)
+        if exists:
+            code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')
             await ctx.send(ALREADY_SHOP_OWNER)
             return
+    except Exception as e:
+        print(e)
+        await ctx.send(ALREADY_SHOP_OWNER)
+        return
     shops_category = disnake.utils.get(
         ctx.guild.categories, id=SHOP_CATEGORY_ID)
     new_channel = await ctx.guild.create_text_channel(name or ctx.author.display_name, category=shops_category)
