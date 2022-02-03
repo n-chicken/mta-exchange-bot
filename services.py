@@ -17,7 +17,7 @@ sess = session()
 # -------------------------------------------------------------
 
 
-def recover_session():
+def recover_session(orig_func_call, *args, **kw):
     global sess
     if sess:
         try:
@@ -39,7 +39,7 @@ def sql_error_handler(f):
             return f(*args, **kw)
         except OperationalError as e:
             print(e, file=sys.stderr)
-            recover_session()
+            recover_session(f, *args, **kw)
     return wrapper
 
 # -------------------------------------------------------------
