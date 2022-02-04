@@ -3,6 +3,7 @@
 from datetime import datetime
 from disnake import User, Colour, Embed, File
 from disnake.ext import commands
+from disnake.ext.commands import has_permissions
 from entities import *
 from exceptions import *
 from services import *
@@ -24,6 +25,7 @@ SingleInstance()
 ADMIN_ID = 776924572896460830
 SHOP_CATEGORY_ID = 935334812603002950
 TEST_GUILD_ID = 815757801133441115
+BOT_CENTER_CHANNEL_ID = 934266756871102495
 ENV_TOKEN = os.environ.get('MTA_EXCHANGE_DISCORD_BOT_TOKEN')
 
 if __name__ == '__main__':
@@ -189,6 +191,12 @@ async def on_ready():
 
 
 @bot.event
+async def on_message_discord(message):
+    if message.channel.id == BOT_CENTER_CHANNEL_ID:
+        await message.delete()
+
+
+@bot.event
 async def on_raw_reaction_add(reaction):
     requester_id = reaction.user_id
     if requester_id != bot.user.id:
@@ -303,12 +311,13 @@ async def remove_ad(ctx, ad_id: int):
 
 
 @bot.slash_command()
-async def create_shop(ctx, emoji=None):
+async def create_shop(ctx, use_react_message=True, ereact_message='React to this message to request the shop owner', react_message_emoji='💰'):
     user = ctx.author
     try:
         exists = shop_service.exists(user)
         if exists:
-            code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')
+            code.interact(banner='', local=globals().update(
+                locals()) or globals(), exitmsg='')
             await ctx.send(ALREADY_SHOP_OWNER)
             return
     except Exception as e:
@@ -322,8 +331,8 @@ async def create_shop(ctx, emoji=None):
         shop_service.register(ctx.author, new_channel.id)
     except:
         pass  # remove
-    message = await new_channel.send('React to this message to request the shop owner.')
-    await message.add_reaction(emoji or '💰')
+    message = await new_channel.send(react_message)
+    await message.add_reaction(emoji)
     shop_owner_role = disnake.utils.get(ctx.guild.roles, name="Shop Owner")
     everyone_role = ctx.guild.default_role
     owner = await ctx.guild.fetch_member(user.id)
@@ -334,9 +343,11 @@ async def create_shop(ctx, emoji=None):
     everyone_perms.view_channel = True
     everyone_perms.read_message_history = True
     owner_perms.manage_channels = True
+    owner_perms.manage_messages = True
     owner_perms.read_messages = True
     owner_perms.view_channel = True
     owner_perms.send_messages = True
+    owner_perms.read_message_history = True
     await new_channel.set_permissions(owner, overwrite=owner_perms)
     await new_channel.set_permissions(everyone_role, overwrite=everyone_perms)
     await owner.add_roles(shop_owner_role)
@@ -360,6 +371,21 @@ async def help(ctx):
 /source
     """
     await ctx.send(help)
+
+
+@has_permissions(administrator=True)
+@bot.slash_command()
+async def migrate_legacy_shops(ctx, channel_id, react_message: str = 'React to this message to request the shop owner.', emoji: str = '💰'):
+    # legacy channels 👇
+    # 'chad': 935534377994174515,
+    # 'feather': 935344402631622706,
+    # 'secretpasser': 935357068444049439,
+    # 'szin': 935348447291244635,
+    # 'vort': 937867613277659216,
+    channel = ctx.guild.get_channel(user_channel_ids[channel_id])
+    message = await channel.send(react_message)
+    await message.add_reaction(emoji)
+
 
 # -------------------------------------------------------------
 
