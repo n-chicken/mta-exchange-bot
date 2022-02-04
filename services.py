@@ -17,7 +17,7 @@ sess = session()
 # -------------------------------------------------------------
 
 
-def recover_session(orig_func_call, *args, **kw):
+def recover_session():
     global sess
     if sess:
         try:
@@ -34,12 +34,14 @@ def recover_session(orig_func_call, *args, **kw):
 
 
 def sql_error_handler(f):
+    print("Handling sql error")
     def wrapper(*args, **kw):
         try:
             return f(*args, **kw)
         except OperationalError as e:
             print(e, file=sys.stderr)
-            recover_session(f, *args, **kw)
+            recover_session()
+            return f(*args, **kw)
     return wrapper
 
 # -------------------------------------------------------------
@@ -47,14 +49,12 @@ def sql_error_handler(f):
 
 class TradeService:
 
-    @sql_error_handler
     def add_ad(self, intention, offer, returns, negotiable, user):
         ad = Ad(intention, offer, returns, negotiable, user)
         sess.add(ad)
         sess.commit()
         return ad
 
-    @sql_error_handler
     def search(self, search_query, user, ad_id):
         q = sess.query(Ad)
         if search_query is not None:
@@ -68,11 +68,9 @@ class TradeService:
         q = q.filter_by(deleted_at=None)
         return q.all()
 
-    @sql_error_handler
     def find_ad(self, id) -> Ad:
         return sess.query(Ad).filter_by(id=id).first()
 
-    @sql_error_handler
     def remove_ad(self, id, requesting_user):
         ad = self.find_ad(id)
         if not ad or ad.deleted_at:
@@ -86,7 +84,6 @@ class TradeService:
         else:
             raise UnauthorizedException()
 
-    @sql_error_handler
     def bid(self, ad_id, bid_content, user):
         ad = self.find_ad(ad_id)
         if not ad:
@@ -99,7 +96,6 @@ class TradeService:
 
 class UserService:
 
-    @sql_error_handler
     def review(self, reviewer, reviewed, rate, comment):
         persisted_review, = self._find_review(reviewer.id, reviewed.id)
         if persisted_review:
@@ -112,14 +108,12 @@ class UserService:
         sess.commit()
         return user_review
 
-    @sql_error_handler
     def _find_review(self, reviewer_id, reviewed_id):
         q = sess.query(UserReview)
         q = q.filter_by(reviewer_id=reviewer_id)
         q = q.filter_by(reviewed_id=reviewed_id)
         return q.one_or_none()
 
-    @sql_error_handler
     def get_mean_rating(self, user):
         q = sess.query(UserReview)
         q = q.filter_by(reviewed_id=user.id)
@@ -131,7 +125,6 @@ class UserService:
         sum, = q.one()
         return sum/count
 
-    @sql_error_handler
     def get_reviews(self, user):
         q = sess.query(UserReview.reviewer_id,
                        UserReview.rating, UserReview.comment)
@@ -141,15 +134,12 @@ class UserService:
 
 class ShopService:
 
-    @sql_error_handler
     def exists(self, owner):
         return sess.query(Shop).filter_by(owner_id=owner.id).one_or_none()
 
-    @sql_error_handler
     def get_owner_id(self, channel_id):
         return sess.query(Shop.owner_id).filter_by(channel_id=channel_id).one_or_none()
 
-    @sql_error_handler
     def register(self, owner, channel_id):
         shop = Shop(owner.id, channel_id)
         sess.merge(shop)
