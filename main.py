@@ -275,7 +275,6 @@ async def review(ctx, user: User, rating: int, comment: str = None):
     except AlreadyReviewedException:
         await ctx.send(ALREADY_REVIEWED)
         return
-    # await ctx.send(embed=embed_review(review))
     mean_rating = user_service.get_mean_rating(user)
     peoples_comments = await dictfy_reviews(user_service.get_reviews(user))
     await ctx.send(embed=embed_user_info(user, mean_rating, peoples_comments, from_=ctx.author))
@@ -283,8 +282,11 @@ async def review(ctx, user: User, rating: int, comment: str = None):
 
 @bot.slash_command()
 async def reviews(ctx, user: User):
+    print('abc')
     mean_rating = user_service.get_mean_rating(user)
+    print('def')
     peoples_comments = await dictfy_reviews(user_service.get_reviews(user))
+    print('xyz')
     await ctx.send(embed=embed_user_info(user, mean_rating, peoples_comments))
 
 
