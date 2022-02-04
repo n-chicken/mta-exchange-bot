@@ -303,7 +303,7 @@ async def remove_ad(ctx, ad_id: int):
 
 
 @bot.slash_command()
-async def create_shop(ctx, name=None, emoji=None):
+async def create_shop(ctx, emoji=None):
     user = ctx.author
     try:
         exists = shop_service.exists(user)
