@@ -368,27 +368,27 @@ async def help(ctx):
     await ctx.send(help)
 
 
-@has_permissions(administrator=True)
-@bot.slash_command()
-async def clear_bot_center_chat(ctx):
-    channel = ctx.guild.get_channel(BOT_CENTER_CHANNEL_ID)
-    messages = await channel.history(limit=1000).flatten()
-    for message in messages:
-        if message.author.id != bot.user.id:
-            message.delete()
+# @has_permissions(administrator=True)
+# @bot.slash_command()
+# async def clear_bot_center_chat(ctx):
+#     channel = ctx.guild.get_channel(BOT_CENTER_CHANNEL_ID)
+#     messages = await channel.history(limit=1000).flatten()
+#     for message in messages:
+#         if message.author.id != bot.user.id:
+#             message.delete()
 
-@has_permissions(administrator=True)
-@bot.slash_command()
-async def migrate_legacy_shops(ctx, channel_id, react_message: str = 'React to this message to request the shop owner.', emoji: str = '💰'):
-    # legacy channels 👇
-    # 'chad': 935534377994174515,
-    # 'feather': 935344402631622706,
-    # 'secretpasser': 935357068444049439,
-    # 'szin': 935348447291244635,
-    # 'vort': 937867613277659216,
-    channel = ctx.guild.get_channel(user_channel_ids[channel_id])
-    message = await channel.send(react_message)
-    await message.add_reaction(emoji)
+# @has_permissions(administrator=True)
+# @bot.slash_command()
+# async def migrate_legacy_shops(ctx, channel_id, react_message: str = 'React to this message to request the shop owner.', emoji: str = '💰'):
+#     # legacy channels 👇
+#     # 'chad': 935534377994174515,
+#     # 'feather': 935344402631622706,
+#     # 'secretpasser': 935357068444049439,
+#     # 'szin': 935348447291244635,
+#     # 'vort': 937867613277659216,
+#     channel = ctx.guild.get_channel(user_channel_ids[channel_id])
+#     message = await channel.send(react_message)
+#     await message.add_reaction(emoji)
 
 
 # -------------------------------------------------------------
