@@ -290,11 +290,8 @@ async def review(ctx, user: User, rating: int, comment: str = None):
 
 @bot.slash_command()
 async def reviews(ctx, user: User):
-    print('abc')
     mean_rating = user_service.get_mean_rating(user)
-    print('def')
     peoples_comments = await dictfy_reviews(user_service.get_reviews(user))
-    print('xyz')
     await ctx.send(embed=embed_user_info(user, mean_rating, peoples_comments))
 
 
@@ -316,8 +313,6 @@ async def create_shop(ctx, use_react_message=True, ereact_message='React to this
     try:
         exists = shop_service.exists(user)
         if exists:
-            code.interact(banner='', local=globals().update(
-                locals()) or globals(), exitmsg='')
             await ctx.send(ALREADY_SHOP_OWNER)
             return
     except Exception as e:
@@ -372,6 +367,15 @@ async def help(ctx):
     """
     await ctx.send(help)
 
+
+@has_permissions(administrator=True)
+@bot.slash_command()
+async def clear_bot_center_chat(ctx):
+    channel = ctx.guild.get_channel(BOT_CENTER_CHANNEL_ID)
+    messages = await channel.history(limit=1000).flatten()
+    for message in messages:
+        if message.author.id != bot.user.id:
+            message.delete()
 
 @has_permissions(administrator=True)
 @bot.slash_command()
