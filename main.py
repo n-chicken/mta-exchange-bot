@@ -43,8 +43,7 @@ else:
 bot = commands.Bot(
     # command_prefix='$',
     test_guilds=[args.guild],
-    sync_commands=not args.dont_sync_commands,
-    sync_commands_debug=False
+    sync_commands=not args.dont_sync_commands
 )
 
 items = json.load(open('data/minecraft-items.json'))
@@ -322,10 +321,7 @@ async def create_shop(ctx, use_react_message=True, ereact_message='React to this
     shops_category = disnake.utils.get(
         ctx.guild.categories, id=SHOP_CATEGORY_ID)
     new_channel = await ctx.guild.create_text_channel(name or ctx.author.display_name, category=shops_category)
-    try:
-        shop_service.register(ctx.author, new_channel.id)
-    except:
-        pass  # remove
+    shop_service.register(ctx.author, new_channel.id)
     message = await new_channel.send(react_message)
     await message.add_reaction(emoji)
     shop_owner_role = disnake.utils.get(ctx.guild.roles, name="Shop Owner")
@@ -368,27 +364,27 @@ async def help(ctx):
     await ctx.send(help)
 
 
-# @has_permissions(administrator=True)
-# @bot.slash_command()
-# async def clear_bot_center_chat(ctx):
-#     channel = ctx.guild.get_channel(BOT_CENTER_CHANNEL_ID)
-#     messages = await channel.history(limit=1000).flatten()
-#     for message in messages:
-#         if message.author.id != bot.user.id:
-#             message.delete()
+@has_permissions(administrator=True)
+@bot.slash_command()
+async def clear_bot_center_chat(ctx):
+    channel = ctx.guild.get_channel(BOT_CENTER_CHANNEL_ID)
+    messages = await channel.history(limit=1000).flatten()
+    for message in messages:
+        if message.author.id != bot.user.id:
+            message.delete()
 
-# @has_permissions(administrator=True)
-# @bot.slash_command()
-# async def migrate_legacy_shops(ctx, channel_id, react_message: str = 'React to this message to request the shop owner.', emoji: str = '💰'):
-#     # legacy channels 👇
-#     # 'chad': 935534377994174515,
-#     # 'feather': 935344402631622706,
-#     # 'secretpasser': 935357068444049439,
-#     # 'szin': 935348447291244635,
-#     # 'vort': 937867613277659216,
-#     channel = ctx.guild.get_channel(user_channel_ids[channel_id])
-#     message = await channel.send(react_message)
-#     await message.add_reaction(emoji)
+@has_permissions(administrator=True)
+@bot.slash_command()
+async def migrate_legacy_shops(ctx, channel_id, react_message: str = 'React to this message to request the shop owner.', emoji: str = '💰'):
+    # legacy channels 👇
+    # 'chad': 935534377994174515,
+    # 'feather': 935344402631622706,
+    # 'secretpasser': 935357068444049439,
+    # 'szin': 935348447291244635,
+    # 'vort': 937867613277659216,
+    channel = ctx.guild.get_channel(user_channel_ids[channel_id])
+    message = await channel.send(react_message)
+    await message.add_reaction(emoji)
 
 
 # -------------------------------------------------------------
