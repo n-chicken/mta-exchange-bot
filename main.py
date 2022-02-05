@@ -191,7 +191,7 @@ async def on_ready():
 
 
 @bot.event
-async def on_message_discord(message):
+async def on_message(message):
     if message.channel.id == BOT_CENTER_CHANNEL_ID:
         await message.delete()
 

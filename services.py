@@ -4,8 +4,9 @@ from entities import *
 from exceptions import *
 from sql_base import *
 from sqlalchemy import and_
-from sqlalchemy.exc import IntegrityError, OperationalError, PendingRollbackError
 from sqlalchemy import or_
+from sqlalchemy.exc import IntegrityError, OperationalError
+# from sqlalchemy.exc import PendingRollbackError
 import code
 from time import sleep
 import sys
