@@ -34,10 +34,6 @@ def sql_error_handler(f):
     def wrapper(*args, **kw):
         try:
             return f(*args, **kw)
-        except PendingRollbackError as e:
-            sess.rollback()
-            print(e, file=sys.stderr)
-            recover_session(f, *args, **kw)
         except OperationalError as e:
             print(e, file=sys.stderr)
             recover_session(f, *args, **kw)
