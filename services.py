@@ -37,6 +37,7 @@ def sql_error_handler(f):
         except OperationalError as e:
             print(e, file=sys.stderr)
             recover_session(f, *args, **kw)
+            return f(*args, **kw)
     return wrapper
 
 # -------------------------------------------------------------
