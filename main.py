@@ -307,7 +307,7 @@ async def remove_ad(ctx, ad_id: int):
 
 
 @bot.slash_command()
-async def create_shop(ctx, use_react_message=True, ereact_message='React to this message to request the shop owner', react_message_emoji='💰'):
+async def create_shop(ctx, use_react_message=True, react_message='React to this message to request the shop owner', react_message_emoji='💰'):
     user = ctx.author
     try:
         exists = shop_service.exists(user)
@@ -320,10 +320,10 @@ async def create_shop(ctx, use_react_message=True, ereact_message='React to this
         return
     shops_category = disnake.utils.get(
         ctx.guild.categories, id=SHOP_CATEGORY_ID)
-    new_channel = await ctx.guild.create_text_channel(name or ctx.author.display_name, category=shops_category)
+    new_channel = await ctx.guild.create_text_channel(ctx.author.display_name, category=shops_category)
     shop_service.register(ctx.author, new_channel.id)
     message = await new_channel.send(react_message)
-    await message.add_reaction(emoji)
+    await message.add_reaction(react_message_emoji)
     shop_owner_role = disnake.utils.get(ctx.guild.roles, name="Shop Owner")
     everyone_role = ctx.guild.default_role
     owner = await ctx.guild.fetch_member(user.id)
