@@ -216,7 +216,7 @@ ALREADY_SHOP_OWNER = 'Already owns a shop'
 TBI = 'To be implemented'
 AD_OFFER_EQ_RETURNS = 'Offer may not be the same as expected returns'
 INVALID_RATING = 'Rating must be between 0 and 5'
-ALREADY_REVIEWED = 'You already reviwed this user'
+ALREADY_REVIEWED = 'You already reviewed this user'
 CANT_RATE_URSLEF = 'Can\'t rate yourself, smartass'
 
 # -------------------------------------------------------------
@@ -249,9 +249,14 @@ async def bid(ctx, ad_id: int, bid_content: str):
     if len(bid_content) > 280:
         await ctx.send(PROPOSAL_TOO_LONG)
         return
-    bid = trade_service.bid(ad_id, bid_content, ctx.author)
+    # ↓ Send an error message to the user if the ad is not found
+    try:
+        bid = trade_service.bid(ad_id, bid_content, ctx.author)
+    except AdNotFoundException:
+        await ctx.send(f"**{AD_NOT_FOUND}!** (id: {str(ad_id)})")
     ad = trade_service.find_ad(bid.ad_id)
     ad_author = await bot.fetch_user(ad.author_id)
+    await ad_author.send(f"**@{ctx.author}** bid **{bid_content}** on you ad for **{ad.offer}**. (ID: **{str(ad_id)}**)")
     await ctx.send(embed=embed_bid(bid, ctx.author, ad_author))
 
 
