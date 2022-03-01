@@ -31,7 +31,7 @@ Disclaimer: We're not responsible for users that act in bad-faith, so trade wise
 - [ ] ~~Add autocomplete in contexts where item ids and names are possible arguments~~
   - ~~Maybe include popular kits?~~
 - ~~Add trust-ranking system?~~
-- [ ] Users are to be directly notified when they receive an /bid
+- [x] Users are to be directly notified when they receive an /bid
 - [ ] Limit ad count per player unless they're "very" trusted
 - [ ] Automatically remove old user data within a yet-to-be-determined time frame
 - [ ] Better search
