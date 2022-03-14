@@ -99,7 +99,7 @@ class UserService:
 
     @sql_error_handler
     def review(self, reviewer, reviewed, rate, comment):
-        persisted_review, = self._find_review(reviewer.id, reviewed.id)
+        persisted_review = self._find_review(reviewer.id, reviewed.id)
         if persisted_review:
             user_review = UserReview(reviewer, reviewed, 0, 0)
             user_review.rating = rate

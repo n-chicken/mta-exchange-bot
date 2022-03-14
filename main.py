@@ -56,14 +56,12 @@ shop_service = ShopService()
 
 
 def rand_emoji():
-    rand = random.randint(0, 1) % 3
-    if rand == 0:
-        emoji = '<:youdidwhat:934477030525919242>'
-    elif rand == 1:
-        emoji = '<:what:934477030618177566>'
-    else:
-        emoji = '<:pepenosign:934477030270066740>'
-    return emoji
+    emojis = [
+    '<:youdidwhat:934477030525919242>',
+    '<:what:934477030618177566>',
+    '<:pepenosign:934477030270066740>'
+    ]
+    return random.choice(emojis)
 
 
 def find_item(string):
@@ -145,13 +143,14 @@ def embed_user_info(user: User, mean_rating: float, peoples_comments: dict, from
     return embed
 
 
-def embed_bid(bid: Bid, bidder: User, author: User) -> Embed:
+def embed_bid(bid: Bid, bidder: User, author: User, inDm: bool) -> Embed:
     ad = trade_service.find_ad(bid.ad_id)
     is_ad_buy = ad.intention == 'buy'
+    s = "'s"
     if not ad:
         raise AdNotFoundException()
     embed = Embed(
-        title=f'Just bid on Ad #{ad.id}:',
+        title=f'Just bid on ad #{ad.id}:' if not inDm else f'Just bid on your ad! Id: #{ad.id}',
         description=bid.bid_content,
         colour=Colour.blue() if is_ad_buy else Colour.yellow()
     )
@@ -168,7 +167,7 @@ def embed_bid(bid: Bid, bidder: User, author: User) -> Embed:
         embed.set_image(file=file_other_item)
     noun = 'request' if is_ad_buy else 'offer'
     embed.add_field(
-        name=f'For {author.display_name}\'s {noun}:', value=ad.offer, inline=False)
+        name=f'For {author.display_name + s if not inDm else "your"} {noun if not inDm else ""}: {ad.offer}', value=ad.offer, inline=False)
     embed.set_author(name=bidder.display_name,
                      icon_url=bidder.display_avatar.url)
     return embed
@@ -211,6 +210,7 @@ async def on_raw_reaction_add(reaction):
 PROPOSAL_TOO_LONG = ' must be at most 280 characters long'
 INVALID_SEARCH = 'Search for either a user or an item or both'
 AD_NOT_FOUND = 'Ad not found'
+AD_NOT_NEGOTIABLE = ' ad is not negotiable.'
 UNAUTHORIZED = 'Unauthorized'
 ALREADY_SHOP_OWNER = 'Already owns a shop'
 TBI = 'To be implemented'
@@ -255,9 +255,13 @@ async def bid(ctx, ad_id: int, bid_content: str):
     except AdNotFoundException:
         await ctx.send(f"**{AD_NOT_FOUND}!** (id: {str(ad_id)})")
     ad = trade_service.find_ad(bid.ad_id)
+    # Making sure the ad is negotiable.
+    if not ad.negotiable:
+        await ctx.send(f"Cannot bid, reason: {AD_NOT_NEGOTIABLE}")
+        return
     ad_author = await bot.fetch_user(ad.author_id)
-    await ad_author.send(f"**@{ctx.author}** bid **{bid_content}** on you ad for **{ad.offer}**. (ID: **{str(ad_id)}**)")
-    await ctx.send(embed=embed_bid(bid, ctx.author, ad_author))
+    await ad_author.send(embed=embed_bid(bid, ctx.author, ad_author, True))
+    await ctx.send(embed=embed_bid(bid, ctx.author, ad_author, False))
 
 
 @bot.slash_command()
@@ -314,6 +318,7 @@ async def remove_ad(ctx, ad_id: int):
 @bot.slash_command()
 async def create_shop(ctx, use_react_message=True, react_message='React to this message to request the shop owner', react_message_emoji='💰'):
     user = ctx.author
+    # Make sure that the user doesn't already own a shop
     try:
         exists = shop_service.exists(user)
         if exists:
